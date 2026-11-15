@@ -251,12 +251,14 @@ public static class HostIsolationContractValidator
             errors.Add("The receipt must attest the deny-all network policy and observed egress denial.");
         if (!IsSha256(receipt.InputArtifactDigest) ||
             receipt.InputArtifactDigest != request.Candidate.ArtifactDigest ||
-            receipt.InputArtifactBytes <= 0)
-            errors.Add("Input artifact digest or byte count is missing or does not match the candidate artifact.");
+            receipt.InputArtifactBytes <= 0 ||
+            receipt.InputArtifactBytes > request.Limits.MaxArtifactBytes)
+            errors.Add("Input artifact digest or byte count is missing, mismatched, or above the requested artifact bound.");
         if (receipt.OutputArtifactBytes < 0 ||
+            receipt.OutputArtifactBytes > request.Limits.MaxArtifactBytes ||
             (receipt.OutputArtifactBytes == 0 && receipt.OutputArtifactDigest is not null) ||
             (receipt.OutputArtifactBytes > 0 && !IsSha256(receipt.OutputArtifactDigest)))
-            errors.Add("Output artifact digest and byte count are inconsistent.");
+            errors.Add("Output artifact digest and byte count are inconsistent or exceed the requested artifact bound.");
         if (!TerminalReasonMatchesOutcome(receipt.Outcome, receipt.TerminalReason))
             errors.Add("Terminal reason does not match the host execution outcome.");
 
