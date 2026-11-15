@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "**"
+  create:
   delete:
   schedule:
     - cron: "17 4 * * *"
