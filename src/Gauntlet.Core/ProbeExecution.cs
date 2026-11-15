@@ -119,7 +119,7 @@ public sealed class ProbeRunner
                         $"{probe.Id}:execution-error",
                         probe.Id,
                         FindingSeverity.Unknown,
-                        "Probe execution raised an exception; inspect the runner's protected diagnostic channel.")],
+                        "Probe execution raised an exception; exception details are intentionally omitted from the public run report.")],
                     stopwatch.Elapsed));
                 continue;
             }
