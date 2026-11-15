@@ -15,6 +15,7 @@ git clone --branch development https://github.com/TrentBest/TheSingularityWorksh
 git clone --branch development https://github.com/TrentBest/TheSingularityWorkshop.GUI.git
 cd TheSingularityWorkshop.Gauntlet
 dotnet build samples/GauntletBadge/GauntletBadge.csproj --configuration Release
+dotnet test tests/Gauntlet.Core.Tests/Gauntlet.Core.Tests.csproj --configuration Release
 ~~~
 
 Render a preview state:
@@ -30,6 +31,10 @@ The GitHub Actions badge workflow checks out both repositories, records their ex
 
 The checked-in preview fixtures are not live project verdicts. A production badge must be generated from a validated status projection tied to the exact candidate SHA and report identity.
 
-## Current verification boundary
+## Probe runner boundary
 
-The source and workflow are authored, but the first successful CI run is still required to claim that the generator compiles and all badge fixtures pass. The badge sample is a presentation proof; it does not execute Gauntlet probes or provide evidence that a candidate survived.
+The first probe runner executes Gauntlet-owned, trusted probe implementations sequentially in-process. It validates probe/profile identity, assertion bounds, cancellation, and elapsed duration after a probe returns. The elapsed-duration limit is cooperative and cannot preempt non-cooperative code.
+
+This is not a sandbox. It does not enforce memory, filesystem, process, or network isolation and must not load or execute candidate-supplied code. Candidate execution remains blocked until a host-owned isolation adapter can enforce and attest those controls.
+
+The harmless vulnerable fixture is pure in-memory logic: a reservation quantity validator incorrectly accepts a negative quantity. Its probe demonstrates a reproducible high-severity finding without filesystem, process, network, or privileged effects.
