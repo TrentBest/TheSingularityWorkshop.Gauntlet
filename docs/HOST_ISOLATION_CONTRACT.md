@@ -71,6 +71,24 @@ The receipt must contain, at minimum:
 
 The receipt must distinguish **requested**, **configured**, and **observed/enforced** controls. It must not represent a configured control as verified enforcement.
 
+## Canonical receipt and signature contract
+
+Version 1 receipt signatures use the JSON Canonicalization Scheme (JCS), RFC 8785. This is a wire-format requirement, not a claim that the current core library implements JCS or cryptography.
+
+The signed message is constructed as follows:
+
+1. Serialize the complete receipt using the versioned wire schema with exact, documented JSON property names and types.
+2. Reject duplicate JSON property names, invalid Unicode, non-I-JSON values, unknown schema versions, and malformed fields before canonicalization. Do not silently coerce values.
+3. Remove the top-level `signature` property entirely. Retain `signingKeyId` and every other receipt field in the signed payload.
+4. Canonicalize the resulting JSON object according to RFC 8785. The canonical bytes are UTF-8 without a byte-order mark.
+5. Prefix those bytes with the exact ASCII domain separator `TheSingularityWorkshop.Gauntlet.HostExecutionReceipt.v1\n`. The signature algorithm signs/verifies this complete byte sequence.
+
+The algorithm and signature encoding are selected by a separately versioned provider trust profile; this contract does not invent a cryptographic primitive or prescribe a key store. The verifier must bind `signingKeyId` to an explicitly trusted provider identity and enforce key validity, rotation, revocation, and algorithm policy. Unknown keys, unsupported algorithms, malformed signatures, canonicalization failures, and verifier exceptions fail closed.
+
+Implementations must share published canonicalization and signature test vectors before interoperability is claimed. A non-empty signature string, a successful JSON parse, or a self-reported key ID is never proof of authenticity.
+
+The current C# receipt record and injected verifier are an initial schema-validation scaffold, not yet a complete implementation of this wire contract. In particular, the receipt model still needs the host image/platform and adapter version, network policy, input/output artifact metadata, and explicit terminal reason fields listed above. Do not enable a host adapter or candidate execution until the receipt schema and canonical wire representation are completed and independently tested.
+
 ## Fail-closed conditions
 
 Candidate execution is denied, or the attempt is recorded as non-passing, if any of the following occurs:
@@ -103,7 +121,7 @@ The implementation must include adversarial integration tests that attempt to ex
 
 The core library now defines version-1 request, finite-limit, effective-control, terminal-outcome, and receipt models in `HostIsolationContracts.cs`. Its validator rejects malformed or expired requests, unsupported schema versions, non-positive limits, unbounded attempts, candidate/profile/run mismatches, expired receipt timestamps, controls that were configured but not independently observed, observed CPU/memory/process/disk/wall-clock/output/artifact quotas above the requested ceilings, overlong attempts, unsuccessful process-tree termination, failed cleanup, and non-ordinary host outcomes.
 
-Receipt signature verification and replay registration are explicit injected interfaces. A verifier or replay-guard exception is converted into a failed validation result; it must not escape as an accepted or ambiguous receipt. Missing nested control evidence is likewise rejected without throwing. The verifier contract must validate the exact canonical receipt representation with the signature field excluded, using a documented canonicalization and trusted-key policy; a non-empty signature string is never proof of authenticity. The core library does not contain a signing algorithm, trusted-key store, persistent replay database, provider adapter, or host implementation. Those responsibilities must be supplied by a separately reviewed adapter and CiAi must independently validate the evidence. Unit tests exercise schema and validation behavior only; they do not prove cryptographic authenticity, durable replay resistance, or OS-level enforcement.
+Receipt signature verification and replay registration are explicit injected interfaces. A verifier or replay-guard exception is converted into a failed validation result; it must not escape as an accepted or ambiguous receipt. Missing nested control evidence is likewise rejected without throwing. The verifier contract must validate the exact canonical receipt representation described above; the current interface is a seam for an adapter, not a canonicalization or cryptographic implementation. The core library does not contain a signing algorithm, trusted-key store, persistent replay database, provider adapter, or host implementation. Those responsibilities must be supplied by a separately reviewed adapter and CiAi must independently validate the evidence. Unit tests exercise schema and validation behavior only; they do not prove cryptographic authenticity, durable replay resistance, or OS-level enforcement.
 
 ## Explicit non-goals
 
