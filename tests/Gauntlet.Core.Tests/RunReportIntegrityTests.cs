@@ -52,7 +52,7 @@ public sealed class RunReportIntegrityTests
     public void Any_content_mutation_invalidates_the_digest()
     {
         var sealedReport = RunReportIntegrity.Seal(Report);
-        var changedProbe = sealedReport.ProbeResults[0] with { PassedAssertions = 1 };
+        var changedProbe = sealedReport.ProbeResults[0] with { PassedAssertions = 0 };
         var tampered = sealedReport with
         {
             ProbeResults = [changedProbe, sealedReport.ProbeResults[1]]
