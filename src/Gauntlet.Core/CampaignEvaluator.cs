@@ -25,6 +25,9 @@ public static class CampaignEvaluator
         if (!ValidateProfile(profile, reasons))
             return Invalid(reasons);
 
+        if (!RunReportIntegrity.Verify(report))
+            reasons.Add("Run report digest is missing, malformed, or does not match its canonical content.");
+
         if (report.SchemaVersion != 1)
             reasons.Add("Unsupported run report schema version.");
 
