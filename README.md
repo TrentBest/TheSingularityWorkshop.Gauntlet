@@ -8,6 +8,7 @@
 # The Singularity Workshop — Gauntlet
 
 [![Sith Policy](assets/sith-policy.svg)](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/workflows/sith-policy.yml)
+[![GUI.SVG badge contracts](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/workflows/badge.yml/badge.svg?branch=development)](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/workflows/badge.yml)
 
 **Software should earn its release.** Gauntlet is the Workshop's adversarial proving ground for MicroBundles and Experiences: it challenges a precisely identified candidate with bounded, reproducible probes, records what breaks, and returns evidence that the release pipeline can independently verify.
 
@@ -68,7 +69,7 @@ The ownership boundaries are deliberate:
 - **Foundry** coordinates bounded repair work and human handoff.
 - **GUI.SVG** generates the animated badge from the same status model; the badge is presentation, not evidence.
 
-See [Architecture](docs/ARCHITECTURE.md) and [Run Contract](docs/RUN_CONTRACT.md).
+See [Architecture](docs/ARCHITECTURE.md), [Run Contract](docs/RUN_CONTRACT.md), and the [local development guide](docs/DEVELOPMENT.md).
 
 ## 🟢 04 — See it in a minute
 
