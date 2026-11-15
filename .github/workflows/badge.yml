@@ -1,0 +1,68 @@
+name: Gauntlet GUI.SVG badge contracts
+
+on:
+  push:
+    branches: [development]
+  pull_request:
+    branches: [development]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  render-and-verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out Gauntlet
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          path: TheSingularityWorkshop.Gauntlet
+
+      - name: Check out GUI.SVG source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: TrentBest/TheSingularityWorkshop.GUI
+          ref: development
+          path: TheSingularityWorkshop.GUI
+
+      - name: Record exact source identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Gauntlet SHA: $(git -C TheSingularityWorkshop.Gauntlet rev-parse HEAD)"
+          echo "GUI source SHA: $(git -C TheSingularityWorkshop.GUI rev-parse HEAD)"
+          {
+            echo "## GUI.SVG source identity"
+            echo "- Gauntlet: $(git -C TheSingularityWorkshop.Gauntlet rev-parse HEAD)"
+            echo "- GUI.SVG source: $(git -C TheSingularityWorkshop.GUI rev-parse HEAD)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore and build the GUI.SVG-backed badge generator
+        run: dotnet build TheSingularityWorkshop.Gauntlet/samples/GauntletBadge/GauntletBadge.csproj --configuration Release
+
+      - name: Render all badge states through GUI.SVG
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          project=TheSingularityWorkshop.Gauntlet/samples/GauntletBadge/GauntletBadge.csproj
+          dotnet run --no-build --project "$project" --configuration Release -- --state untested --candidate-sha preview-untested --run-id none --output artifacts/gauntlet-untested.svg
+          dotnet run --no-build --project "$project" --configuration Release -- --state failed --candidate-sha preview-failed --run-id fixture-failed --score 62 --average 81 --delta -12 --survived 4 --failed 2 --output artifacts/gauntlet-failed.svg
+          dotnet run --no-build --project "$project" --configuration Release -- --state passed --candidate-sha preview-passed --run-id fixture-passed --score 98 --average 84 --delta 14 --survived 5 --failed 2 --output artifacts/gauntlet-passed.svg
+          dotnet run --no-build --project "$project" --configuration Release -- --state blocked --candidate-sha preview-blocked --run-id fixture-blocked --output artifacts/gauntlet-blocked.svg
+
+      - name: Verify generated badge contracts
+        run: python3 TheSingularityWorkshop.Gauntlet/scripts/verify-badge-fixtures.py artifacts
+
+      - name: Upload generated GUI.SVG badge fixtures
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: gauntlet-gui-svg-badge-fixtures
+          path: artifacts/gauntlet-*.svg
+          if-no-files-found: error
