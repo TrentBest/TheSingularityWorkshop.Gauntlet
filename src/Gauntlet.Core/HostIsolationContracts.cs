@@ -113,8 +113,10 @@ public sealed record HostExecutionReceipt(
     bool NetworkEgressDeniedObserved,
     string InputArtifactDigest,
     long InputArtifactBytes,
+    int InputArtifactCount,
     string? OutputArtifactDigest,
     long OutputArtifactBytes,
+    int OutputArtifactCount,
     HostEffectiveControls EffectiveControls,
     bool ProcessTreeTerminated,
     bool CleanupSucceeded,
@@ -252,12 +254,16 @@ public static class HostIsolationContractValidator
         if (!IsSha256(receipt.InputArtifactDigest) ||
             receipt.InputArtifactDigest != request.Candidate.ArtifactDigest ||
             receipt.InputArtifactBytes <= 0 ||
-            receipt.InputArtifactBytes > request.Limits.MaxArtifactBytes)
+            receipt.InputArtifactBytes > request.Limits.MaxArtifactBytes ||
+            receipt.InputArtifactCount <= 0 ||
+            receipt.InputArtifactCount > request.Limits.MaxArtifactCount)
             errors.Add("Input artifact digest or byte count is missing, mismatched, or above the requested artifact bound.");
         if (receipt.OutputArtifactBytes < 0 ||
             receipt.OutputArtifactBytes > request.Limits.MaxArtifactBytes ||
-            (receipt.OutputArtifactBytes == 0 && receipt.OutputArtifactDigest is not null) ||
-            (receipt.OutputArtifactBytes > 0 && !IsSha256(receipt.OutputArtifactDigest)))
+            receipt.OutputArtifactCount < 0 ||
+            receipt.OutputArtifactCount > request.Limits.MaxArtifactCount ||
+            (receipt.OutputArtifactCount == 0 && (receipt.OutputArtifactBytes != 0 || receipt.OutputArtifactDigest is not null)) ||
+            (receipt.OutputArtifactCount > 0 && (receipt.OutputArtifactBytes <= 0 || !IsSha256(receipt.OutputArtifactDigest))))
             errors.Add("Output artifact digest and byte count are inconsistent or exceed the requested artifact bound.");
         if (!TerminalReasonMatchesOutcome(receipt.Outcome, receipt.TerminalReason))
             errors.Add("Terminal reason does not match the host execution outcome.");
