@@ -27,7 +27,7 @@ public sealed class CampaignEvaluatorTests
         CampaignProfile profile,
         IReadOnlyList<ProbeResult> results,
         CampaignState state = CampaignState.Completed) =>
-        new(
+        RunReportIntegrity.Seal(new RunReport(
             1,
             Candidate,
             "0.1.0-dev",
@@ -43,7 +43,7 @@ public sealed class CampaignEvaluatorTests
                 : null,
             state,
             results,
-            null);
+            null));
 
     [Fact]
     public void All_required_probes_passing_produces_a_100_score()
