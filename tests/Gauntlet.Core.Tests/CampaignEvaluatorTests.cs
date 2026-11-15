@@ -190,4 +190,72 @@ public sealed class CampaignEvaluatorTests
 
         Assert.Equal(GateStatus.Invalid, result.Status);
     }
+
+
+    [Fact]
+    public void Critical_severity_cannot_be_disabled_by_campaign_profile()
+    {
+        var profile = Profile(new ProbeDefinition("required-contract", 1, true, 1m))
+            with { BlockingSeverities = new HashSet<FindingSeverity>() };
+        var critical = new Finding("critical-001", "required-contract", FindingSeverity.Critical, "Critical invariant violation.");
+        var report = Report(profile,
+        [
+            new ProbeResult("required-contract", 1, ProbeOutcome.Passed, 1, 1, [critical], TimeSpan.Zero)
+        ]);
+
+        var result = CampaignEvaluator.Evaluate(profile, Candidate, report);
+
+        Assert.Equal(GateStatus.Failed, result.Status);
+        Assert.Equal(100m, result.Score);
+    }
+
+    [Fact]
+    public void Optional_probe_with_contradictory_pass_counts_is_invalid()
+    {
+        var profile = Profile(
+            new ProbeDefinition("required-contract", 1, true, 1m),
+            new ProbeDefinition("optional-contract", 1, false, 1m));
+        var report = Report(profile,
+        [
+            new ProbeResult("required-contract", 1, ProbeOutcome.Passed, 1, 1, [], TimeSpan.Zero),
+            new ProbeResult("optional-contract", 1, ProbeOutcome.Passed, 0, 1, [], TimeSpan.Zero)
+        ]);
+
+        var result = CampaignEvaluator.Evaluate(profile, Candidate, report);
+
+        Assert.Equal(GateStatus.Invalid, result.Status);
+        Assert.Null(result.Score);
+    }
+
+    [Fact]
+    public void Artifact_digest_mismatch_is_invalid()
+    {
+        var profile = Profile(new ProbeDefinition("required-contract", 1, true, 1m));
+        var report = Report(profile,
+        [
+            new ProbeResult("required-contract", 1, ProbeOutcome.Passed, 1, 1, [], TimeSpan.Zero)
+        ]);
+        var wrongCandidate = Candidate with { ArtifactDigest = $"sha256:{new string('d', 64)}" };
+
+        var result = CampaignEvaluator.Evaluate(profile, wrongCandidate, report);
+
+        Assert.Equal(GateStatus.Invalid, result.Status);
+        Assert.Null(result.Score);
+    }
+
+    [Fact]
+    public void Malformed_candidate_sha_is_invalid()
+    {
+        var profile = Profile(new ProbeDefinition("required-contract", 1, true, 1m));
+        var report = Report(profile,
+        [
+            new ProbeResult("required-contract", 1, ProbeOutcome.Passed, 1, 1, [], TimeSpan.Zero)
+        ]);
+        var malformedCandidate = Candidate with { CommitSha = "short-sha" };
+
+        var result = CampaignEvaluator.Evaluate(profile, malformedCandidate, report);
+
+        Assert.Equal(GateStatus.Invalid, result.Status);
+    }
+
 }
