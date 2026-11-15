@@ -61,108 +61,262 @@ public enum GateStatus
 }
 
 /// <summary>Identifies the exact repository revision and artifact under examination.</summary>
-/// <param name="Repository">Canonical owner/repository identity.</param>
-/// <param name="CommitSha">Full immutable Git commit SHA.</param>
-/// <param name="ArtifactDigest">SHA-256 digest of the exact candidate artifact.</param>
-/// <param name="ManifestDigest">Optional SHA-256 digest of the MicroBundle or Experience manifest.</param>
-public sealed record CandidateIdentity(
-    string Repository,
-    string CommitSha,
-    string ArtifactDigest,
-    string? ManifestDigest);
+public sealed record CandidateIdentity
+{
+    /// <summary>Creates an immutable candidate identity.</summary>
+    public CandidateIdentity(string repository, string commitSha, string artifactDigest, string? manifestDigest)
+    {
+        Repository = repository;
+        CommitSha = commitSha;
+        ArtifactDigest = artifactDigest;
+        ManifestDigest = manifestDigest;
+    }
+
+    /// <summary>Canonical owner/repository identity.</summary>
+    public string Repository { get; init; }
+
+    /// <summary>Full immutable Git commit SHA.</summary>
+    public string CommitSha { get; init; }
+
+    /// <summary>SHA-256 digest of the exact candidate artifact.</summary>
+    public string ArtifactDigest { get; init; }
+
+    /// <summary>Optional SHA-256 digest of the MicroBundle or Experience manifest.</summary>
+    public string? ManifestDigest { get; init; }
+}
 
 /// <summary>Defines one versioned probe included in a campaign profile.</summary>
-/// <param name="Id">Stable probe identity.</param>
-/// <param name="Version">Probe contract version.</param>
-/// <param name="Required">Whether the probe is required for a complete score and pass.</param>
-/// <param name="Weight">Positive relative weight used by the score calculation.</param>
-public sealed record ProbeDefinition(
-    string Id,
-    int Version,
-    bool Required,
-    decimal Weight);
+public sealed record ProbeDefinition
+{
+    /// <summary>Creates a probe definition.</summary>
+    public ProbeDefinition(string id, int version, bool required, decimal weight)
+    {
+        Id = id;
+        Version = version;
+        Required = required;
+        Weight = weight;
+    }
+
+    /// <summary>Stable probe identity.</summary>
+    public string Id { get; init; }
+
+    /// <summary>Probe contract version.</summary>
+    public int Version { get; init; }
+
+    /// <summary>Whether the probe is required for a complete score and pass.</summary>
+    public bool Required { get; init; }
+
+    /// <summary>Positive relative weight used by the score calculation.</summary>
+    public decimal Weight { get; init; }
+}
 
 /// <summary>An immutable, versioned inventory and policy for a campaign.</summary>
-/// <param name="Id">Stable campaign profile identity.</param>
-/// <param name="Version">Profile contract version.</param>
-/// <param name="Digest">SHA-256 digest of the canonical profile definition.</param>
-/// <param name="Probes">Declared required and optional probes.</param>
-/// <param name="BlockingSeverities">Profile-defined severities that block a pass; critical and high always block.</param>
-public sealed record CampaignProfile(
-    string Id,
-    int Version,
-    string Digest,
-    IReadOnlyList<ProbeDefinition> Probes,
-    IReadOnlySet<FindingSeverity> BlockingSeverities);
+public sealed record CampaignProfile
+{
+    /// <summary>Creates a campaign profile.</summary>
+    public CampaignProfile(
+        string id,
+        int version,
+        string digest,
+        IReadOnlyList<ProbeDefinition> probes,
+        IReadOnlySet<FindingSeverity> blockingSeverities)
+    {
+        Id = id;
+        Version = version;
+        Digest = digest;
+        Probes = probes;
+        BlockingSeverities = blockingSeverities;
+    }
+
+    /// <summary>Stable campaign profile identity.</summary>
+    public string Id { get; init; }
+
+    /// <summary>Profile contract version.</summary>
+    public int Version { get; init; }
+
+    /// <summary>SHA-256 digest of the canonical profile definition.</summary>
+    public string Digest { get; init; }
+
+    /// <summary>Declared required and optional probes.</summary>
+    public IReadOnlyList<ProbeDefinition> Probes { get; init; }
+
+    /// <summary>Profile-defined severities that block a pass; critical and high always block.</summary>
+    public IReadOnlySet<FindingSeverity> BlockingSeverities { get; init; }
+}
 
 /// <summary>A reproducible observation emitted by a probe.</summary>
-/// <param name="Id">Stable finding identity within the report.</param>
-/// <param name="ProbeId">Identity of the probe that produced the finding.</param>
-/// <param name="Severity">Impact classification; unknown severity fails closed.</param>
-/// <param name="Summary">Concise description of the observed behavior.</param>
-/// <param name="ReproductionReference">Optional reference to bounded reproduction evidence.</param>
-public sealed record Finding(
-    string Id,
-    string ProbeId,
-    FindingSeverity Severity,
-    string Summary,
-    string? ReproductionReference = null);
+public sealed record Finding
+{
+    /// <summary>Creates a finding.</summary>
+    public Finding(string id, string probeId, FindingSeverity severity, string summary, string? reproductionReference = null)
+    {
+        Id = id;
+        ProbeId = probeId;
+        Severity = severity;
+        Summary = summary;
+        ReproductionReference = reproductionReference;
+    }
+
+    /// <summary>Stable finding identity within the report.</summary>
+    public string Id { get; init; }
+
+    /// <summary>Identity of the probe that produced the finding.</summary>
+    public string ProbeId { get; init; }
+
+    /// <summary>Impact classification; unknown severity fails closed.</summary>
+    public FindingSeverity Severity { get; init; }
+
+    /// <summary>Concise description of the observed behavior.</summary>
+    public string Summary { get; init; }
+
+    /// <summary>Optional reference to bounded reproduction evidence.</summary>
+    public string? ReproductionReference { get; init; }
+}
 
 /// <summary>Records the outcome and assertions produced by one probe attempt.</summary>
-/// <param name="ProbeId">Stable probe identity.</param>
-/// <param name="ProbeVersion">Version of the executed probe contract.</param>
-/// <param name="Outcome">Probe execution outcome.</param>
-/// <param name="PassedAssertions">Number of assertions that passed.</param>
-/// <param name="TotalAssertions">Total number of assertions evaluated.</param>
-/// <param name="Findings">Findings observed by this probe.</param>
-/// <param name="Duration">Elapsed probe execution time.</param>
-public sealed record ProbeResult(
-    string ProbeId,
-    int ProbeVersion,
-    ProbeOutcome Outcome,
-    int PassedAssertions,
-    int TotalAssertions,
-    IReadOnlyList<Finding> Findings,
-    TimeSpan Duration);
+public sealed record ProbeResult
+{
+    /// <summary>Creates a probe result.</summary>
+    public ProbeResult(
+        string probeId,
+        int probeVersion,
+        ProbeOutcome outcome,
+        int passedAssertions,
+        int totalAssertions,
+        IReadOnlyList<Finding> findings,
+        TimeSpan duration)
+    {
+        ProbeId = probeId;
+        ProbeVersion = probeVersion;
+        Outcome = outcome;
+        PassedAssertions = passedAssertions;
+        TotalAssertions = totalAssertions;
+        Findings = findings;
+        Duration = duration;
+    }
+
+    /// <summary>Stable probe identity.</summary>
+    public string ProbeId { get; init; }
+
+    /// <summary>Version of the executed probe contract.</summary>
+    public int ProbeVersion { get; init; }
+
+    /// <summary>Probe execution outcome.</summary>
+    public ProbeOutcome Outcome { get; init; }
+
+    /// <summary>Number of assertions that passed.</summary>
+    public int PassedAssertions { get; init; }
+
+    /// <summary>Total number of assertions evaluated.</summary>
+    public int TotalAssertions { get; init; }
+
+    /// <summary>Findings observed by this probe.</summary>
+    public IReadOnlyList<Finding> Findings { get; init; }
+
+    /// <summary>Elapsed probe execution time.</summary>
+    public TimeSpan Duration { get; init; }
+}
 
 /// <summary>Immutable evidence record for one campaign attempt.</summary>
-/// <param name="SchemaVersion">Version of the serialized report contract.</param>
-/// <param name="Candidate">Exact candidate source and artifact identity.</param>
-/// <param name="GauntletVersion">Version of the Gauntlet implementation.</param>
-/// <param name="ProfileId">Campaign profile identity.</param>
-/// <param name="ProfileVersion">Campaign profile version.</param>
-/// <param name="ProfileDigest">Digest of the exact profile definition used.</param>
-/// <param name="EnvironmentId">Runner environment identity.</param>
-/// <param name="RunId">Unique campaign identity.</param>
-/// <param name="Attempt">One-based attempt number; retries remain distinct.</param>
-/// <param name="StartedAt">Campaign start timestamp.</param>
-/// <param name="CompletedAt">Completion timestamp, or null while incomplete.</param>
-/// <param name="CampaignState">Execution lifecycle state.</param>
-/// <param name="ProbeResults">Observed probe outcomes and findings.</param>
-/// <param name="ReportDigest">Digest of canonical report content, excluding this field.</param>
-public sealed record RunReport(
-    int SchemaVersion,
-    CandidateIdentity Candidate,
-    string GauntletVersion,
-    string ProfileId,
-    int ProfileVersion,
-    string ProfileDigest,
-    string EnvironmentId,
-    string RunId,
-    int Attempt,
-    DateTimeOffset StartedAt,
-    DateTimeOffset? CompletedAt,
-    CampaignState CampaignState,
-    IReadOnlyList<ProbeResult> ProbeResults,
-    string? ReportDigest);
+public sealed record RunReport
+{
+    /// <summary>Creates a run report.</summary>
+    public RunReport(
+        int schemaVersion,
+        CandidateIdentity candidate,
+        string gauntletVersion,
+        string profileId,
+        int profileVersion,
+        string profileDigest,
+        string environmentId,
+        string runId,
+        int attempt,
+        DateTimeOffset startedAt,
+        DateTimeOffset? completedAt,
+        CampaignState campaignState,
+        IReadOnlyList<ProbeResult> probeResults,
+        string? reportDigest)
+    {
+        SchemaVersion = schemaVersion;
+        Candidate = candidate;
+        GauntletVersion = gauntletVersion;
+        ProfileId = profileId;
+        ProfileVersion = profileVersion;
+        ProfileDigest = profileDigest;
+        EnvironmentId = environmentId;
+        RunId = runId;
+        Attempt = attempt;
+        StartedAt = startedAt;
+        CompletedAt = completedAt;
+        CampaignState = campaignState;
+        ProbeResults = probeResults;
+        ReportDigest = reportDigest;
+    }
+
+    /// <summary>Version of the serialized report contract.</summary>
+    public int SchemaVersion { get; init; }
+
+    /// <summary>Exact candidate source and artifact identity.</summary>
+    public CandidateIdentity Candidate { get; init; }
+
+    /// <summary>Version of the Gauntlet implementation.</summary>
+    public string GauntletVersion { get; init; }
+
+    /// <summary>Campaign profile identity.</summary>
+    public string ProfileId { get; init; }
+
+    /// <summary>Campaign profile version.</summary>
+    public int ProfileVersion { get; init; }
+
+    /// <summary>Digest of the exact profile definition used.</summary>
+    public string ProfileDigest { get; init; }
+
+    /// <summary>Runner environment identity.</summary>
+    public string EnvironmentId { get; init; }
+
+    /// <summary>Unique campaign identity.</summary>
+    public string RunId { get; init; }
+
+    /// <summary>One-based attempt number; retries remain distinct.</summary>
+    public int Attempt { get; init; }
+
+    /// <summary>Campaign start timestamp.</summary>
+    public DateTimeOffset StartedAt { get; init; }
+
+    /// <summary>Completion timestamp, or null while incomplete.</summary>
+    public DateTimeOffset? CompletedAt { get; init; }
+
+    /// <summary>Execution lifecycle state.</summary>
+    public CampaignState CampaignState { get; init; }
+
+    /// <summary>Observed probe outcomes and findings.</summary>
+    public IReadOnlyList<ProbeResult> ProbeResults { get; init; }
+
+    /// <summary>Digest of canonical report content, excluding this field.</summary>
+    public string? ReportDigest { get; init; }
+}
 
 /// <summary>Contains the result of evaluating a run against its trusted profile and candidate.</summary>
-/// <param name="Status">Deterministic gate status.</param>
-/// <param name="Score">Weighted score from 0 to 100, or null when required evidence is incomplete.</param>
-/// <param name="Reasons">Stable, human-readable explanations for the status.</param>
-/// <param name="Findings">Findings retained from the report.</param>
-public sealed record EvaluationResult(
-    GateStatus Status,
-    decimal? Score,
-    IReadOnlyList<string> Reasons,
-    IReadOnlyList<Finding> Findings);
+public sealed record EvaluationResult
+{
+    /// <summary>Creates a deterministic evaluation result.</summary>
+    public EvaluationResult(GateStatus status, decimal? score, IReadOnlyList<string> reasons, IReadOnlyList<Finding> findings)
+    {
+        Status = status;
+        Score = score;
+        Reasons = reasons;
+        Findings = findings;
+    }
+
+    /// <summary>Deterministic gate status.</summary>
+    public GateStatus Status { get; init; }
+
+    /// <summary>Weighted score from 0 to 100, or null when required evidence is incomplete.</summary>
+    public decimal? Score { get; init; }
+
+    /// <summary>Stable, human-readable explanations for the status.</summary>
+    public IReadOnlyList<string> Reasons { get; init; }
+
+    /// <summary>Findings retained from the report.</summary>
+    public IReadOnlyList<Finding> Findings { get; init; }
+}
