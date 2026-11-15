@@ -63,7 +63,7 @@ The receipt must contain, at minimum:
 - Gauntlet version, profile ID/version/digest, run ID, and attempt number;
 - requested limits and effective enforced limits;
 - network policy and effective egress state;
-- input and output artifact digests and byte counts;
+- input and output artifact digests, byte counts, and artifact counts;
 - start/end timestamps and terminal reason;
 - process-tree termination result;
 - cleanup result and residual-resource check;
@@ -87,7 +87,7 @@ The algorithm and signature encoding are selected by a separately versioned prov
 
 Implementations must share published canonicalization and signature test vectors before interoperability is claimed. A non-empty signature string, a successful JSON parse, or a self-reported key ID is never proof of authenticity.
 
-The current C# receipt record and injected verifier remain a schema-validation scaffold, not an implementation of this wire contract. The domain model now carries host runner image/platform and adapter version, an explicit deny-all network policy and observed egress-denial state, input/output artifact digests and byte counts, and an explicit terminal reason. Validation binds the input digest to the candidate artifact, enforces artifact byte ceilings, and checks terminal-reason/outcome consistency. A frozen JSON wire DTO, RFC 8785 implementation, positive/negative signature vectors, and real trusted-key verifier remain outstanding. Do not enable a host adapter or candidate execution until those pieces are completed and independently tested.
+The current C# receipt record and injected verifier remain a schema-validation scaffold, not an implementation of this wire contract. The domain model now carries host runner image/platform and adapter version, an explicit deny-all network policy and observed egress-denial state, input/output artifact digests, byte counts, and artifact counts, and an explicit terminal reason. Validation binds the input digest to the candidate artifact and enforces both byte and count ceilings for input and output artifacts. Validation binds the input digest to the candidate artifact, enforces artifact byte and count ceilings, and checks terminal-reason/outcome consistency. A frozen JSON wire DTO, RFC 8785 implementation, positive/negative signature vectors, and real trusted-key verifier remain outstanding. Do not enable a host adapter or candidate execution until those pieces are completed and independently tested.
 
 ## Fail-closed conditions
 
