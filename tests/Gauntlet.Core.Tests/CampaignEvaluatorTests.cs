@@ -1,3 +1,4 @@
+using Xunit;
 using TheSingularityWorkshop.Gauntlet;
 
 namespace TheSingularityWorkshop.Gauntlet.Tests;
