@@ -33,7 +33,7 @@ public sealed class ProbeRunnerTests
             [new PassingProbe("zeta"), new PassingProbe("alpha")],
             new ProbeExecutionLimits(TimeSpan.FromSeconds(1), 10));
 
-        Assert.Equal(["alpha", "zeta"], results.Select(x => x.ProbeId));
+        Assert.Equal(new[] { "alpha", "zeta" }, results.Select(x => x.ProbeId));
         Assert.All(results, result => Assert.Equal(ProbeOutcome.Passed, result.Outcome));
         Assert.All(results, result => Assert.True(result.Duration >= TimeSpan.Zero));
     }
