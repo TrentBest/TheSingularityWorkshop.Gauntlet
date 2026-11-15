@@ -84,6 +84,14 @@ Initial probe families:
 
 Do not perform uncontrolled production-target scanning, credential harvesting, destructive operations, arbitrary network egress, or unbounded resource consumption. The first proof target is a deliberately vulnerable, harmless fixture.
 
+### Current execution boundary
+
+`ProbeRunner` currently executes only Gauntlet-owned `IGauntletProbe` implementations sequentially in-process. It checks profile identity, duplicate IDs, assertion bounds, cancellation, and elapsed duration after cooperative completion. It does not provide process isolation, hard preemption, memory quotas, filesystem restrictions, or network controls.
+
+The first vulnerable target is a pure in-memory fixture with an intentional negative-quantity validation defect. This proves probe-to-finding-to-evaluator behavior only. It is not evidence that arbitrary candidate code can safely be executed.
+
+Candidate-supplied code remains out of scope until a host-owned isolation adapter can enforce and attest process, filesystem, network, CPU, memory, time, artifact, and cleanup boundaries. If those controls cannot be established, execution must fail closed.
+
 ## 6. Findings and severity
 
 A finding records the exact probe, candidate identity, observed behavior, expected invariant, bounded reproduction data, severity, and regression-fixture identity when available.
