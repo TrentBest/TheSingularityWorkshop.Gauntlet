@@ -15,10 +15,12 @@ public sealed class HostIsolationContractTests
         new HostExecutionLimits(60, 1000, 512, 32, 1024, 1_000_000, 500_000, 10, 3, true));
 
     private static HostControlEvidence Evidence => new(true, true);
+    private static HostControlEvidence Limit(long value) => new(true, true, value, value);
 
     private static HostEffectiveControls Controls => new(
         Evidence, Evidence, Evidence, Evidence, Evidence, Evidence,
-        Evidence, Evidence, Evidence, Evidence, Evidence);
+        Limit(60), Limit(1000), Limit(512), Limit(32), Limit(1024),
+        Limit(1_000_000), Limit(500_000), Limit(10));
 
     private static HostExecutionReceipt Receipt => new(
         1, "receipt-1", Request.RequestId, Request.Candidate,
@@ -116,6 +118,16 @@ public sealed class HostIsolationContractTests
         Assert.Contains(result.Errors, error => error.Contains("observed as enforced"));
     }
 
+    [Fact]
+    public void Observed_resource_limit_above_request_is_rejected()
+    {
+        var controls = Controls with { MemoryLimit = Limit(513) };
+        var result = HostIsolationContractValidator.ValidateReceipt(
+            Request, Receipt with { EffectiveControls = controls }, Now.AddMinutes(1),
+            new AcceptSignature(), new ReplayGuard());
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, error => error.Contains("resource limits exceed"));
+    }
     [Fact]
     public void Failed_cleanup_or_live_process_tree_is_rejected()
     {
