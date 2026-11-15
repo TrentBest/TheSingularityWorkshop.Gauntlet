@@ -37,30 +37,25 @@ public static class RunReportIntegrity
         if (results.Any(result => result is null))
             throw new InvalidOperationException("A report cannot contain null probe results.");
 
-        if (results.GroupBy(result => result.ProbeId, StringComparer.Ordinal).Any(group => group.Count() > 1))
-            throw new InvalidOperationException("A report cannot contain duplicate probe result identities.");
-
-        var findingIds = new HashSet<string>(StringComparer.Ordinal);
         foreach (var result in results)
         {
             if (result.Findings is null)
                 throw new InvalidOperationException($"Probe '{result.ProbeId}' has no findings collection.");
 
-            foreach (var finding in result.Findings)
-            {
-                if (finding is null || string.IsNullOrWhiteSpace(finding.Id) || !findingIds.Add(finding.Id))
-                    throw new InvalidOperationException("A report contains a null, empty, or duplicate finding identity.");
-            }
+            if (result.Findings.Any(finding => finding is null))
+                throw new InvalidOperationException($"Probe '{result.ProbeId}' contains a null finding.");
         }
 
         var canonical = report with
         {
             ProbeResults = results
                 .OrderBy(result => result.ProbeId, StringComparer.Ordinal)
+                .ThenBy(result => JsonSerializer.Serialize(result, SerializerOptions), StringComparer.Ordinal)
                 .Select(result => result with
                 {
                     Findings = result.Findings
                         .OrderBy(finding => finding.Id, StringComparer.Ordinal)
+                        .ThenBy(finding => JsonSerializer.Serialize(finding, SerializerOptions), StringComparer.Ordinal)
                         .ToArray()
                 })
                 .ToArray(),
