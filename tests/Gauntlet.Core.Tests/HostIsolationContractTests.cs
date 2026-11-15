@@ -62,7 +62,7 @@ public sealed class HostIsolationContractTests
     {
         var invalid = Request with
         {
-            Limits = Request.Limits with { MemoryMiB = 0, MaxArtifactBytes = 2_000_000 }
+            Limits = Request.Limits with { MemoryMiB = 0 }
         };
         Assert.False(HostIsolationContractValidator.ValidateRequest(invalid, Now).IsValid);
     }
@@ -73,7 +73,7 @@ public sealed class HostIsolationContractTests
         var invalid = Request with
         {
             Attempt = 4,
-            Limits = Request.Limits with { DenyNetworkEgress = false }
+            Limits = Request.Limits with { DenyNetworkEgress = false, MaxAttempts = 3 }
         };
         Assert.False(HostIsolationContractValidator.ValidateRequest(invalid, Now).IsValid);
     }
