@@ -147,7 +147,7 @@ The developer can embed a reusable Gauntlet workflow in their CI. CiAi can then 
 
 - **Run score:** weighted assertion pass ratio for one completed campaign.
 - **Average:** mean score for the same profile/version cohort only.
-- **Delta:** latest comparable score minus the previous comparable score.
+- **Delta:** latest comparable score minus the previous comparable run.
 - **Survived:** completed attempts that passed.
 - **Failed:** completed attempts that failed.
 - **Incomplete:** attempts without a valid completed score.
@@ -172,4 +172,6 @@ The repository currently contains:
 - runner checks for profile membership, version identity, duplicate IDs, assertion bounds, cancellation, and elapsed duration;
 - a harmless in-memory vulnerable fixture whose negative-quantity defect is detected as a high-severity finding and rejected by the campaign evaluator.
 
-The runner is not a sandbox. It cannot preempt non-cooperative code or enforce process, memory, filesystem, or network isolation. It does not execute candidate-supplied code. The next milestone is a host-owned isolation adapter with enforceable quotas and attested cleanup, followed by the CiAi provider adapter. Neither is complete.
+The runner is not a sandbox. It cannot preempt non-cooperative code or enforce process, memory, filesystem, or network isolation. It does not execute candidate-supplied code.
+
+The next milestone is to implement and validate a host-owned isolation adapter against the requirements in [HOST_ISOLATION_CONTRACT.md](HOST_ISOLATION_CONTRACT.md). That contract is a design specification, not evidence that any host currently enforces those controls. The adapter must pass host-level adversarial integration tests and produce a verifiable execution receipt before candidate-controlled execution is enabled. The CiAi provider adapter follows that milestone; neither adapter is complete.
