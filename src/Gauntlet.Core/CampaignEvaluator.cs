@@ -40,6 +40,15 @@ public static class CampaignEvaluator
         if (report.CompletedAt is { } completedAt && completedAt < report.StartedAt)
             reasons.Add("Run completion timestamp precedes its start timestamp.");
 
+        if (!IsValidCandidate(expectedCandidate))
+            reasons.Add("Expected candidate identity is malformed.");
+
+        if (!Enum.IsDefined(report.CampaignState))
+            reasons.Add("Run report contains an unknown campaign state.");
+
+        if (report.StartedAt == default)
+            reasons.Add("Run report is missing its start timestamp.");
+
         if (reasons.Count > 0)
             return Invalid(reasons);
 
@@ -54,6 +63,11 @@ public static class CampaignEvaluator
 
         var definitions = profile.Probes.ToDictionary(x => x.Id, StringComparer.Ordinal);
         var results = report.ProbeResults ?? Array.Empty<ProbeResult>();
+        if (results.Any(result => result is null))
+            reasons.Add("Run report contains a null probe result.");
+
+        if (reasons.Count > 0)
+            return Invalid(reasons);
 
         var duplicateProbe = results
             .GroupBy(x => x.ProbeId, StringComparer.Ordinal)
@@ -72,15 +86,34 @@ public static class CampaignEvaluator
             if (result.ProbeVersion != definition.Version)
                 reasons.Add($"Probe '{result.ProbeId}' version does not match the trusted profile.");
 
+            if (!Enum.IsDefined(result.Outcome))
+                reasons.Add($"Probe '{result.ProbeId}' contains an unknown outcome.");
+
             if (result.Duration < TimeSpan.Zero ||
                 result.PassedAssertions < 0 ||
                 result.TotalAssertions < 0 ||
                 result.PassedAssertions > result.TotalAssertions)
                 reasons.Add($"Probe '{result.ProbeId}' contains invalid duration or assertion counts.");
 
+            if (result.Outcome is ProbeOutcome.Passed or ProbeOutcome.Failed)
+            {
+                if (result.TotalAssertions == 0)
+                    reasons.Add($"Probe '{result.ProbeId}' claims a conclusive outcome without assertions.");
+                else if (result.Outcome == ProbeOutcome.Passed && result.PassedAssertions != result.TotalAssertions)
+                    reasons.Add($"Probe '{result.ProbeId}' claims to pass but has failed assertions.");
+                else if (result.Outcome == ProbeOutcome.Failed && result.PassedAssertions == result.TotalAssertions)
+                    reasons.Add($"Probe '{result.ProbeId}' claims to fail but all assertions passed.");
+            }
+
             if (result.Findings is null)
             {
                 reasons.Add($"Probe '{result.ProbeId}' has a missing findings collection.");
+                continue;
+            }
+
+            if (result.Findings.Any(finding => finding is null))
+            {
+                reasons.Add($"Probe '{result.ProbeId}' contains a null finding.");
                 continue;
             }
 
@@ -124,13 +157,6 @@ public static class CampaignEvaluator
             if (result.Outcome is not (ProbeOutcome.Passed or ProbeOutcome.Failed))
                 missingOrIncomplete.Add($"Required probe '{definition.Id}' did not reach a conclusive outcome.");
 
-            if (result.Outcome == ProbeOutcome.Passed &&
-                result.PassedAssertions != result.TotalAssertions)
-                reasons.Add($"Probe '{definition.Id}' claims to pass but has failed assertions.");
-
-            if (result.Outcome == ProbeOutcome.Failed &&
-                result.PassedAssertions == result.TotalAssertions)
-                reasons.Add($"Probe '{definition.Id}' claims to fail but all assertions passed.");
         }
 
         if (reasons.Count > 0)
@@ -157,7 +183,8 @@ public static class CampaignEvaluator
         var findings = CollectFindings(report);
         var blockingFindings = findings
             .Where(finding =>
-                finding.Severity == FindingSeverity.Unknown ||
+                !Enum.IsDefined(finding.Severity) ||
+                finding.Severity is FindingSeverity.Unknown or FindingSeverity.High or FindingSeverity.Critical ||
                 profile.BlockingSeverities.Contains(finding.Severity))
             .ToArray();
 
@@ -193,6 +220,12 @@ public static class CampaignEvaluator
             return false;
         }
 
+        if (profile.Probes.Any(probe => probe is null))
+        {
+            reasons.Add("Campaign profile contains a null probe definition.");
+            return false;
+        }
+
         if (profile.Probes.Count == 0 || !profile.Probes.Any(x => x.Required))
             reasons.Add("Campaign profile must declare at least one required probe.");
 
@@ -210,6 +243,22 @@ public static class CampaignEvaluator
 
         return reasons.Count == 0;
     }
+
+    private static bool IsValidCandidate(CandidateIdentity candidate) =>
+        !string.IsNullOrWhiteSpace(candidate.Repository) &&
+        candidate.Repository.Contains('/', StringComparison.Ordinal) &&
+        IsHexDigest(candidate.CommitSha, 40, 64) &&
+        IsSha256Digest(candidate.ArtifactDigest) &&
+        (candidate.ManifestDigest is null || IsSha256Digest(candidate.ManifestDigest));
+
+    private static bool IsSha256Digest(string value) =>
+        value.StartsWith("sha256:", StringComparison.Ordinal) &&
+        IsHexDigest(value[7..], 64, 64);
+
+    private static bool IsHexDigest(string value, int minimumLength, int maximumLength) =>
+        value.Length >= minimumLength &&
+        value.Length <= maximumLength &&
+        value.All(Uri.IsHexDigit);
 
     private static IReadOnlyList<Finding> CollectFindings(RunReport report) =>
         (report.ProbeResults ?? Array.Empty<ProbeResult>())
