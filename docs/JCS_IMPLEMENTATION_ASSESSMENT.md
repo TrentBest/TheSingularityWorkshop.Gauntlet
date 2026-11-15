@@ -1,0 +1,68 @@
+# RFC 8785 Canonicalizer Assessment
+
+**Status:** candidate identified for an isolated integration spike; no dependency has been added and no signature-verification claim is made.
+
+## Decision summary
+
+The strongest .NET package candidate found in this review is `MackySoft.Json.Canonicalization` 0.1.0:
+
+- NuGet package: https://www.nuget.org/packages/MackySoft.Json.Canonicalization/0.1.0
+- Source repository: https://github.com/mackysoft/dotnet-foundations
+- Reviewed source snapshot: `2a0a9f8fd12f37a17cd54dc09904e3d8a484d6fa`
+- Reviewed canonicalizer source blob: `68eb9c043a57a8f207d40d109f69239123e85e22`
+- Target: `netstandard2.1`, compatible with Gauntlet's `net8.0` core.
+- Declared direct dependency: `System.Text.Json >= 8.0.5`.
+
+This is a candidate, not an unconditional trust decision. It is a relatively new package with one published version. Before making it part of the trusted receipt-verification path, pin and review the exact package contents, verify package/source correspondence and license notices, inspect dependency advisories, and run Gauntlet-owned independent vectors in CI.
+
+## Why it is the leading candidate
+
+The package exposes a narrow API that returns caller-owned canonical UTF-8 bytes. Its raw UTF-8 entry point performs strict input checks before canonicalization, including:
+
+- invalid UTF-8 and byte-order mark rejection;
+- comments, trailing commas, extra top-level values, and malformed JSON rejection;
+- duplicate decoded property-name rejection (including escaped aliases);
+- invalid Unicode / unpaired surrogate rejection;
+- non-finite or binary64-unrepresentable number rejection;
+- negative-zero rejection;
+- a maximum raw-input nesting depth of 64.
+
+Its source uses the C# ECMAScript number serializer from the RFC 8785 authors' `cyberphone/json-canonicalization` repository at pinned commit `19d51d7fe467d4706a3ff08adf8a748f29fc21e0`. The package retains upstream headers and includes Apache-2.0 and MPL-2.0 third-party notices.
+
+The package's test suite includes RFC 8785 Appendix G vectors, Appendix B finite-number vectors, strict-input and semantic-rejection cases, duplicate decoded property names, negative zero, depth boundaries, deep parsed-element traversal, and returned-buffer ownership. These are useful upstream tests, but they do not replace Gauntlet's own compatibility vectors or CI verification.
+
+## Integration constraints
+
+If the package passes the independent integration spike:
+
+1. Use only `Rfc8785JsonCanonicalizer.Canonicalize(ReadOnlySpan<byte>)` on the original bounded UTF-8 receipt payload. Do not parse with permissive settings and then pass a `JsonElement`; that overload explicitly delegates source syntax and parser-depth policy to the caller's parser.
+2. Enforce a strict maximum receipt byte length before parsing/canonicalization. The package deliberately does not impose a byte-size limit.
+3. Parse and validate the versioned wire schema independently. JCS canonicalization does not validate Gauntlet receipt semantics, required fields, enum vocabulary, identity binding, or unknown-field policy.
+4. Remove only the top-level `signature` member from the validated wire object. Keep `signingKeyId` and every other defined field in the signed payload. Reject duplicate property names before any map/object projection can collapse them.
+5. Canonicalize the signature-excluded object, prepend the exact UTF-8 domain separator
+   `TheSingularityWorkshop.Gauntlet.HostExecutionReceipt.v1\n`, and pass those exact bytes to the provider-selected signature verifier.
+6. Keep algorithm selection, key identity, validity, rotation, revocation, and provider trust policy outside the canonicalizer.
+7. Treat every parse, schema, canonicalization, signature, and replay failure as a hard rejection.
+
+## Alternatives and trade-offs
+
+### RFC authors' reference implementation
+
+RFC 8785 Appendix G lists the `cyberphone/json-canonicalization` .NET implementation among implementations verified as compatible with JCS. This is the strongest provenance reference. It is source code in a multi-language repository rather than the narrowly packaged NuGet dependency evaluated above. It remains a viable fallback if the package integration audit fails.
+
+### Other NuGet candidate
+
+`Jcs.Net` 0.1.1 was also found, but the available evidence in this review was insufficient to assess its source provenance, test vectors, strict raw-input behavior, and dependency boundary. It is not selected.
+
+## Required spike exit criteria
+
+- [ ] Pin package version and package content hash; verify the package against the reviewed source snapshot.
+- [ ] Review the full transitive dependency graph and current advisories.
+- [ ] Verify license and third-party notices in the actual nupkg.
+- [ ] Add Gauntlet-owned positive and negative vectors, including RFC Appendix B number vectors and escaped duplicate property names.
+- [ ] Verify the exact domain-separated bytes and signature-excluded projection independently.
+- [ ] Verify unknown schema versions, unknown fields, duplicate names, invalid Unicode, oversized payloads, and malformed signatures all fail closed.
+- [ ] Build and run the complete Gauntlet test suite in CI.
+- [ ] Keep the verifier interface byte-oriented so it receives the exact canonical signed payload, not a domain object that it must independently serialize.
+
+Until these criteria pass, the current receipt signature verifier remains an injected test scaffold and the receipt model remains a domain model, not a frozen wire protocol.
