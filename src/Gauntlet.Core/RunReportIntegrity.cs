@@ -49,8 +49,6 @@ public static class RunReportIntegrity
         var canonical = report with
         {
             ProbeResults = results
-                .OrderBy(result => result.ProbeId, StringComparer.Ordinal)
-                .ThenBy(result => JsonSerializer.Serialize(result, SerializerOptions), StringComparer.Ordinal)
                 .Select(result => result with
                 {
                     Findings = result.Findings
@@ -58,6 +56,8 @@ public static class RunReportIntegrity
                         .ThenBy(finding => JsonSerializer.Serialize(finding, SerializerOptions), StringComparer.Ordinal)
                         .ToArray()
                 })
+                .OrderBy(result => result.ProbeId, StringComparer.Ordinal)
+                .ThenBy(result => JsonSerializer.Serialize(result, SerializerOptions), StringComparer.Ordinal)
                 .ToArray(),
             ReportDigest = null
         };
