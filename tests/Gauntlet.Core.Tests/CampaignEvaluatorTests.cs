@@ -258,4 +258,22 @@ public sealed class CampaignEvaluatorTests
         Assert.Equal(GateStatus.Invalid, result.Status);
     }
 
+
+
+    [Fact]
+    public void Missing_or_tampered_report_digest_is_invalid()
+    {
+        var profile = Profile(new ProbeDefinition("required-contract", 1, true, 1m));
+        var report = Report(profile,
+        [
+            new ProbeResult("required-contract", 1, ProbeOutcome.Passed, 1, 1, [], TimeSpan.Zero)
+        ]);
+        var tampered = report with { ReportDigest = null };
+
+        var result = CampaignEvaluator.Evaluate(profile, Candidate, tampered);
+
+        Assert.Equal(GateStatus.Invalid, result.Status);
+        Assert.Null(result.Score);
+    }
+
 }
