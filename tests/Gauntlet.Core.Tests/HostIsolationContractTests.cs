@@ -30,7 +30,7 @@ public sealed class HostIsolationContractTests
         "gauntlet-fixture-image@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "linux-x64", "fixture-adapter/1.0",
         HostNetworkPolicy.DenyAll, true,
-        Request.Candidate.ArtifactDigest, 4096, null, 0,
+        Request.Candidate.ArtifactDigest, 4096, 1, null, 0, 0,
         Controls, true, true, true,
         "fixture-provider", "host-fixture-1", "test-key-1", "signed-payload");
 
@@ -202,7 +202,8 @@ public sealed class HostIsolationContractTests
             IsolationAdapterVersion = "",
             NetworkEgressDeniedObserved = false,
             InputArtifactDigest = $"sha256:{new string('d', 64)}",
-            InputArtifactBytes = 0
+            InputArtifactBytes = 0,
+            InputArtifactCount = Request.Limits.MaxArtifactCount + 1
         };
         var result = HostIsolationContractValidator.ValidateReceipt(
             Request, invalid, Now.AddMinutes(1), new AcceptSignature(), new ReplayGuard());
@@ -226,6 +227,28 @@ public sealed class HostIsolationContractTests
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, error => error.Contains("Terminal reason"));
         Assert.Contains(result.Errors, error => error.Contains("Output artifact"));
+    }
+
+
+    [Fact]
+    public void Receipt_rejects_artifact_counts_outside_requested_bounds()
+    {
+        var tooManyInputs = Receipt with { InputArtifactCount = Request.Limits.MaxArtifactCount + 1 };
+        var inputResult = HostIsolationContractValidator.ValidateReceipt(
+            Request, tooManyInputs, Now.AddMinutes(1), new AcceptSignature(), new ReplayGuard());
+        Assert.False(inputResult.IsValid);
+        Assert.Contains(inputResult.Errors, error => error.Contains("Input artifact digest"));
+
+        var tooManyOutputs = Receipt with
+        {
+            OutputArtifactDigest = $"sha256:{new string('d', 64)}",
+            OutputArtifactBytes = 128,
+            OutputArtifactCount = Request.Limits.MaxArtifactCount + 1
+        };
+        var outputResult = HostIsolationContractValidator.ValidateReceipt(
+            Request, tooManyOutputs, Now.AddMinutes(1), new AcceptSignature(), new ReplayGuard());
+        Assert.False(outputResult.IsValid);
+        Assert.Contains(outputResult.Errors, error => error.Contains("Output artifact"));
     }
 
     [Fact]
