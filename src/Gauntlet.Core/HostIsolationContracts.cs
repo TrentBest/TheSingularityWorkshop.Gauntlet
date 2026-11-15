@@ -28,7 +28,7 @@ public sealed record HostExecutionRequest(
     HostExecutionLimits Limits);
 
 /// <summary>Host-observed evidence for one enforced control.</summary>
-public sealed record HostControlEvidence(bool Configured, bool ObservedEnforced);
+public sealed record HostControlEvidence(bool Configured, bool ObservedEnforced, long? ConfiguredLimit = null, long? ObservedLimit = null);
 
 /// <summary>Separates configured controls from independently observed enforcement.</summary>
 public sealed record HostEffectiveControls(
@@ -38,11 +38,14 @@ public sealed record HostEffectiveControls(
     HostControlEvidence NetworkEgressDenied,
     HostControlEvidence ReadOnlyCandidateInput,
     HostControlEvidence BoundedScratch,
+    HostControlEvidence WallClockLimit,
     HostControlEvidence CpuLimit,
     HostControlEvidence MemoryLimit,
     HostControlEvidence ProcessLimit,
     HostControlEvidence DiskLimit,
-    HostControlEvidence OutputLimit);
+    HostControlEvidence OutputLimit,
+    HostControlEvidence ArtifactLimit,
+    HostControlEvidence ArtifactCountLimit);
 
 /// <summary>Terminal state attested by the isolation host.</summary>
 public enum HostExecutionOutcome
@@ -192,7 +195,9 @@ public static class HostIsolationContractValidator
             receipt.Attempt != request.Attempt)
             errors.Add("Receipt does not bind to the exact requested candidate and attempt.");
         if (receipt.StartedAt < request.IssuedAt || receipt.CompletedAt < receipt.StartedAt ||
-            receipt.CompletedAt > request.ExpiresAt || receipt.CompletedAt > now)
+            receipt.CompletedAt > request.ExpiresAt || receipt.CompletedAt > now ||
+            receipt.StartedAt > request.ExpiresAt ||
+            receipt.CompletedAt - receipt.StartedAt > TimeSpan.FromSeconds(request.Limits.WallClockSeconds))
             errors.Add("Receipt execution timestamps are outside the request validity interval.");
         if (string.IsNullOrWhiteSpace(receipt.HostProvider) ||
             string.IsNullOrWhiteSpace(receipt.HostIdentity) ||
@@ -202,6 +207,8 @@ public static class HostIsolationContractValidator
 
         if (receipt.EffectiveControls is null || !AllControlsObserved(receipt.EffectiveControls))
             errors.Add("One or more required controls were not configured and independently observed as enforced.");
+        if (receipt.EffectiveControls is not null && !LimitsAreEnforced(request.Limits, receipt.EffectiveControls))
+            errors.Add("One or more observed resource limits exceed the requested bounds or lack numeric enforcement evidence.");
         if (!receipt.ProcessTreeTerminated)
             errors.Add("Complete process-tree termination was not verified.");
         if (!receipt.CleanupSucceeded || !receipt.ResidualResourcesClear)
@@ -223,12 +230,27 @@ public static class HostIsolationContractValidator
         {
             controls.NoCredentials, controls.NoHostMounts, controls.MetadataBlocked,
             controls.NetworkEgressDenied, controls.ReadOnlyCandidateInput, controls.BoundedScratch,
-            controls.CpuLimit, controls.MemoryLimit, controls.ProcessLimit, controls.DiskLimit,
-            controls.OutputLimit
+            controls.WallClockLimit, controls.CpuLimit, controls.MemoryLimit, controls.ProcessLimit, controls.DiskLimit,
+            controls.OutputLimit, controls.ArtifactLimit, controls.ArtifactCountLimit
         }.All(control => control is not null && control.Configured && control.ObservedEnforced);
 
-    private static bool IsRepository(string value)
+    private static bool LimitsAreEnforced(HostExecutionLimits limits, HostEffectiveControls controls) =>
+        IsBounded(controls.WallClockLimit, limits.WallClockSeconds) &&
+        IsBounded(controls.CpuLimit, limits.CpuMillicores) &&
+        IsBounded(controls.MemoryLimit, limits.MemoryMiB) &&
+        IsBounded(controls.ProcessLimit, limits.ProcessCount) &&
+        IsBounded(controls.DiskLimit, limits.DiskMiB) &&
+        IsBounded(controls.OutputLimit, limits.MaxOutputBytes) &&
+        IsBounded(controls.ArtifactLimit, limits.MaxArtifactBytes) &&
+        IsBounded(controls.ArtifactCountLimit, limits.MaxArtifactCount);
+
+    private static bool IsBounded(HostControlEvidence evidence, long requestedLimit) =>
+        evidence.ConfiguredLimit is > 0 && evidence.ObservedLimit is > 0 &&
+        evidence.ConfiguredLimit <= requestedLimit && evidence.ObservedLimit <= evidence.ConfiguredLimit;
+
+    private static bool IsRepository(string? value)
     {
+        if (string.IsNullOrWhiteSpace(value)) return false;
         var parts = value.Split('/');
         return parts.Length == 2 && parts.All(part =>
             part.Length > 0 && part.All(character =>
