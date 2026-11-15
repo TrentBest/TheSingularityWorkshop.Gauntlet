@@ -151,8 +151,8 @@ public static class HostIsolationContractValidator
             limits.MaxAttempts <= 0 ||
             !limits.DenyNetworkEgress)
             errors.Add("All limits must be finite and positive, and network egress must be denied.");
-        else if (request.Attempt > limits.MaxAttempts || limits.MaxArtifactBytes > limits.MaxOutputBytes)
-            errors.Add("Attempt or artifact limits are internally inconsistent.");
+        else if (request.Attempt > limits.MaxAttempts)
+            errors.Add("Attempt exceeds the declared maximum attempt count.");
 
         return errors.Count == 0 ? HostContractValidationResult.Valid() : HostContractValidationResult.Invalid(errors);
     }
@@ -171,6 +171,10 @@ public static class HostIsolationContractValidator
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(signatureVerifier);
         ArgumentNullException.ThrowIfNull(replayGuard);
+
+        var requestValidation = ValidateRequest(request, now);
+        if (!requestValidation.IsValid)
+            return requestValidation;
 
         var errors = new List<string>();
         if (receipt is null)
