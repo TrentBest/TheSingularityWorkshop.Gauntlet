@@ -94,7 +94,7 @@ This repository is being established. The implementation sequence is:
 1. Initial versioned campaign/run/finding contracts and deterministic evaluator are implemented in src/Gauntlet.Core.
 2. Weighted scoring and profile-comparable history metrics are implemented and under contract testing.
 3. GUI.SVG badge generation and four state fixtures are CI-verified.
-4. Canonical report digest and integrity validation.
+4. Canonical report digest and integrity validation are implemented in RunReportIntegrity.
 5. Deterministic probe interface and isolated runner.
 6. Deliberately vulnerable fixture and replay tests.
 7. Read-only/advisory CiAi provider integration.
