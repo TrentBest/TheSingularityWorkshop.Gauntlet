@@ -39,6 +39,16 @@ public sealed class HostIsolationContractTests
         public bool Verify(HostExecutionReceipt receipt) => false;
     }
 
+    private sealed class ThrowingSignature : IHostReceiptSignatureVerifier
+    {
+        public bool Verify(HostExecutionReceipt receipt) => throw new InvalidOperationException("adapter failure");
+    }
+
+    private sealed class ThrowingReplayGuard : IHostReceiptReplayGuard
+    {
+        public bool TryRegister(string receiptId) => throw new InvalidOperationException("adapter failure");
+    }
+
     private sealed class ReplayGuard : IHostReceiptReplayGuard
     {
         private readonly HashSet<string> _seen = [];
@@ -128,6 +138,35 @@ public sealed class HostIsolationContractTests
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, error => error.Contains("resource limits exceed"));
     }
+    [Fact]
+    public void Missing_nested_resource_evidence_is_rejected_without_throwing()
+    {
+        var controls = Controls with { MemoryLimit = null! };
+        var result = HostIsolationContractValidator.ValidateReceipt(
+            Request, Receipt with { EffectiveControls = controls }, Now.AddMinutes(1),
+            new AcceptSignature(), new ReplayGuard());
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, error => error.Contains("controls were not configured"));
+    }
+
+    [Fact]
+    public void Signature_verifier_exception_is_rejected()
+    {
+        var result = HostIsolationContractValidator.ValidateReceipt(
+            Request, Receipt, Now.AddMinutes(1), new ThrowingSignature(), new ReplayGuard());
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, error => error.Contains("verification failed unexpectedly"));
+    }
+
+    [Fact]
+    public void Replay_guard_exception_is_rejected()
+    {
+        var result = HostIsolationContractValidator.ValidateReceipt(
+            Request, Receipt, Now.AddMinutes(1), new AcceptSignature(), new ThrowingReplayGuard());
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, error => error.Contains("replay registration failed unexpectedly"));
+    }
+
     [Fact]
     public void Failed_cleanup_or_live_process_tree_is_rejected()
     {
