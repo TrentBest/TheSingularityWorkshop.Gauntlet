@@ -161,10 +161,10 @@ public static class HistoryAggregator
         var failed = completed.Count(entry => entry.Status == GateStatus.Failed);
         var latest = completed.LastOrDefault();
         var previous = completed.Length > 1 ? completed[^2] : null;
-        var average = completed.Length == 0
+        decimal? average = completed.Length == 0
             ? null
             : decimal.Round(completed.Average(entry => entry.Score!.Value), 2, MidpointRounding.AwayFromZero);
-        var delta = latest is null || previous is null
+        decimal? delta = latest is null || previous is null
             ? null
             : decimal.Round(latest.Score!.Value - previous.Score!.Value, 2, MidpointRounding.AwayFromZero);
 
