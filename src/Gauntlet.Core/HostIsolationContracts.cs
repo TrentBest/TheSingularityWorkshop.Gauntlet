@@ -47,6 +47,36 @@ public sealed record HostEffectiveControls(
     HostControlEvidence ArtifactLimit,
     HostControlEvidence ArtifactCountLimit);
 
+/// <summary>The network policy requested and attested for one execution.</summary>
+public enum HostNetworkPolicy
+{
+    /// <summary>All outbound network access, including DNS and metadata endpoints, is denied.</summary>
+    DenyAll
+}
+
+/// <summary>Why the host execution reached its terminal state.</summary>
+public enum HostTerminalReason
+{
+    /// <summary>The declared workload completed successfully.</summary>
+    Completed,
+    /// <summary>The declared workload returned a non-zero exit status.</summary>
+    CandidateExitNonZero,
+    /// <summary>The host watchdog reached the wall-clock deadline.</summary>
+    WatchdogTimeout,
+    /// <summary>The host accepted a cancellation request.</summary>
+    CancellationRequested,
+    /// <summary>A host-enforced resource ceiling was reached.</summary>
+    ResourceLimitExceeded,
+    /// <summary>Host provisioning failed before workload execution.</summary>
+    ProvisioningError,
+    /// <summary>One or more required isolation controls could not be verified.</summary>
+    IsolationControlUnverified,
+    /// <summary>The host could not terminate the complete workload process tree.</summary>
+    ProcessTreeTerminationFailed,
+    /// <summary>The host could not verify successful environment cleanup.</summary>
+    CleanupFailed
+}
+
 /// <summary>Terminal state attested by the isolation host.</summary>
 public enum HostExecutionOutcome
 {
@@ -75,6 +105,16 @@ public sealed record HostExecutionReceipt(
     DateTimeOffset StartedAt,
     DateTimeOffset CompletedAt,
     HostExecutionOutcome Outcome,
+    HostTerminalReason TerminalReason,
+    string HostRunnerImage,
+    string HostPlatform,
+    string IsolationAdapterVersion,
+    HostNetworkPolicy NetworkPolicy,
+    bool NetworkEgressDeniedObserved,
+    string InputArtifactDigest,
+    long InputArtifactBytes,
+    string? OutputArtifactDigest,
+    long OutputArtifactBytes,
     HostEffectiveControls EffectiveControls,
     bool ProcessTreeTerminated,
     bool CleanupSucceeded,
@@ -201,9 +241,24 @@ public static class HostIsolationContractValidator
             errors.Add("Receipt execution timestamps are outside the request validity interval.");
         if (string.IsNullOrWhiteSpace(receipt.HostProvider) ||
             string.IsNullOrWhiteSpace(receipt.HostIdentity) ||
+            string.IsNullOrWhiteSpace(receipt.HostRunnerImage) ||
+            string.IsNullOrWhiteSpace(receipt.HostPlatform) ||
+            string.IsNullOrWhiteSpace(receipt.IsolationAdapterVersion) ||
             string.IsNullOrWhiteSpace(receipt.SigningKeyId) ||
             string.IsNullOrWhiteSpace(receipt.Signature))
-            errors.Add("Host provenance and signature metadata are required.");
+            errors.Add("Host provenance, runner image/platform, adapter version, and signature metadata are required.");
+        if (receipt.NetworkPolicy != HostNetworkPolicy.DenyAll || !receipt.NetworkEgressDeniedObserved)
+            errors.Add("The receipt must attest the deny-all network policy and observed egress denial.");
+        if (!IsSha256(receipt.InputArtifactDigest) ||
+            receipt.InputArtifactDigest != request.Candidate.ArtifactDigest ||
+            receipt.InputArtifactBytes <= 0)
+            errors.Add("Input artifact digest or byte count is missing or does not match the candidate artifact.");
+        if (receipt.OutputArtifactBytes < 0 ||
+            (receipt.OutputArtifactBytes == 0 && receipt.OutputArtifactDigest is not null) ||
+            (receipt.OutputArtifactBytes > 0 && !IsSha256(receipt.OutputArtifactDigest)))
+            errors.Add("Output artifact digest and byte count are inconsistent.");
+        if (!TerminalReasonMatchesOutcome(receipt.Outcome, receipt.TerminalReason))
+            errors.Add("Terminal reason does not match the host execution outcome.");
 
         if (receipt.EffectiveControls is null || !AllControlsObserved(receipt.EffectiveControls))
             errors.Add("One or more required controls were not configured and independently observed as enforced.");
@@ -244,6 +299,21 @@ public static class HostIsolationContractValidator
 
         return errors.Count == 0 ? HostContractValidationResult.Valid() : HostContractValidationResult.Invalid(errors);
     }
+
+    private static bool TerminalReasonMatchesOutcome(HostExecutionOutcome outcome, HostTerminalReason reason) =>
+        (outcome, reason) switch
+        {
+            (HostExecutionOutcome.Completed, HostTerminalReason.Completed) => true,
+            (HostExecutionOutcome.CandidateFailed, HostTerminalReason.CandidateExitNonZero) => true,
+            (HostExecutionOutcome.TimedOut, HostTerminalReason.WatchdogTimeout) => true,
+            (HostExecutionOutcome.Cancelled, HostTerminalReason.CancellationRequested) => true,
+            (HostExecutionOutcome.ResourceLimited, HostTerminalReason.ResourceLimitExceeded) => true,
+            (HostExecutionOutcome.ProvisioningFailed, HostTerminalReason.ProvisioningError) => true,
+            (HostExecutionOutcome.IsolationUnverified, HostTerminalReason.IsolationControlUnverified) => true,
+            (HostExecutionOutcome.TerminationFailed, HostTerminalReason.ProcessTreeTerminationFailed) => true,
+            (HostExecutionOutcome.CleanupFailed, HostTerminalReason.CleanupFailed) => true,
+            _ => false
+        };
 
     private static bool AllControlsObserved(HostEffectiveControls controls) =>
         new[]
