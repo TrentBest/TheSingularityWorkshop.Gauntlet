@@ -11,7 +11,8 @@
   ],
   "branch_count": 2,
   "status": "COMPLIANT",
-  "evaluated_at": "2026-11-14T00:00:00Z",
+  "evaluated_at": null,
   "workflow_run": null,
-  "triggering_commit": "initial-development-branch"
+  "triggering_commit": null,
+  "evidence_source": "GitHub repository branch inventory observed during project initialization"
 }
