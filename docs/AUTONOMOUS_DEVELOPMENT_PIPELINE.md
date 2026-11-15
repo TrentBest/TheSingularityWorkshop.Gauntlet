@@ -165,7 +165,8 @@ No autonomous repair loop may merge, publish, release, deploy, delete protected 
 The repository currently contains:
 - initial versioned campaign/run/finding contracts;
 - a deterministic campaign evaluator with exact candidate/profile matching, required-probe completeness, weighted scoring, and fail-closed severity handling;
-- canonical report digest sealing and verification;\n- comparable history aggregation for average, delta, survived, failed, and incomplete counts;
+- canonical report digest sealing and verification;
+- comparable history aggregation for average, delta, survived, failed, and incomplete counts;
 - a GUI.SVG-backed animated badge generator with four validated state fixtures.
 
 The next implementation work is the deterministic probe interface and isolated runner, the harmless vulnerable fixture, and then the CiAi provider adapter. These are not yet claimed as complete.
