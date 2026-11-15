@@ -12,7 +12,7 @@ var candidate = Get(options, "candidate-sha", "preview-fixture");
 var runId = Get(options, "run-id", "preview");
 var score = OptionalNumber(options, "score");
 var average = OptionalNumber(options, "average");
-var delta = OptionalNumber(options, "delta");
+var delta = OptionalDelta(options, "delta");
 var survived = OptionalInteger(options, "survived", 0);
 var failed = OptionalInteger(options, "failed", 0);
 var output = Path.GetFullPath(Get(options, "output", $"docs/assets/gauntlet-badge-{state}.svg"));
@@ -226,6 +226,15 @@ static double? OptionalNumber(IReadOnlyDictionary<string, string> values, string
     if (!values.TryGetValue(key, out var value) || value == "—" ||
         !double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed) ||
         !double.IsFinite(parsed) || parsed is < 0 or > 100)
+        return null;
+    return parsed;
+}
+
+static double? OptionalDelta(IReadOnlyDictionary<string, string> values, string key)
+{
+    if (!values.TryGetValue(key, out var value) ||
+        !double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed) ||
+        !double.IsFinite(parsed) || parsed is < -100 or > 100)
         return null;
     return parsed;
 }
