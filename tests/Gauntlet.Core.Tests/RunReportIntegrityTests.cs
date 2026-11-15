@@ -85,13 +85,14 @@ public sealed class RunReportIntegrityTests
     }
 
     [Fact]
-    public void Duplicate_probe_identity_cannot_be_canonicalized()
+    public void Duplicate_probe_identity_is_stably_canonicalized_for_semantic_validation()
     {
         var duplicate = Report with
         {
             ProbeResults = [Report.ProbeResults[0], Report.ProbeResults[0]]
         };
+        var sealedReport = RunReportIntegrity.Seal(duplicate);
 
-        Assert.Throws<InvalidOperationException>(() => RunReportIntegrity.ComputeDigest(duplicate));
+        Assert.True(RunReportIntegrity.Verify(sealedReport));
     }
 }
