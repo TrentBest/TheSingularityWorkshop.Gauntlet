@@ -64,16 +64,19 @@ If the selected provider cannot expose verifiable evidence for one of these requ
 
 The isolation service signs or otherwise authenticates the receipt. The Gauntlet adapter verifies its cryptographic integrity and schema, but CiAi must independently validate the receipt and bind it to the exact CI run and candidate artifact. The receipt must distinguish requested, configured, and observed controls.
 
+The version-1 signed payload uses RFC 8785 JSON Canonicalization Scheme (JCS): serialize the documented receipt wire schema, reject duplicate property names and invalid/non-I-JSON values, remove only the top-level `signature` property, canonicalize to UTF-8 without a BOM, then sign the bytes prefixed by the exact ASCII domain separator `TheSingularityWorkshop.Gauntlet.HostExecutionReceipt.v1\n`. `signingKeyId` remains inside the signed payload. The provider trust profile separately selects the signature algorithm and trusted-key policy. See [HOST_ISOLATION_CONTRACT.md](HOST_ISOLATION_CONTRACT.md) for the normative rules and test-vector requirement. The current record is not yet the complete wire schema; its missing host platform/adapter, network-policy, artifact metadata, and terminal-reason fields must be added before an adapter is enabled.
+
 A valid receipt is necessary, not sufficient, for a passing campaign. Report integrity, required probe coverage, profile identity, finding severity, and CiAi policy remain separate checks.
 
 ## Staged implementation plan
 
 1. **Contract types and validation:** define versioned request, effective-control, terminal-outcome, and receipt models. Unit-test malformed, missing, unsupported, inconsistent, expired, replayed, and identity-mismatched data. These tests prove schema behavior only.
-2. **Provider interface:** define a host-neutral provisioning/execution/termination/attestation interface. No implementation may claim isolation from interface conformance alone.
-3. **Disposable host prototype:** select a concrete provider and implement one-attempt VM provisioning, policy enforcement, watchdog, cleanup, and authenticated receipt generation.
-4. **Host adversarial qualification:** execute controlled tests in disposable infrastructure attempting metadata access, egress, filesystem escape, process/memory/disk exhaustion, descendant survival, output escape, and cleanup interference. Verify host-observed denial and termination.
-5. **CiAi advisory adapter:** only after qualification, provide the report/receipt as a read-only provider packet and let CiAi independently validate it.
-6. **Real candidate opt-in:** enable candidate-controlled execution only after all preceding gates pass and the operator explicitly enables the qualified provider.
+2. **Canonical wire schema and signature vectors:** complete all receipt fields, freeze JSON property names/types, implement RFC 8785 using a reviewed implementation, and publish positive/negative canonicalization and signature test vectors. Do not use a homemade cryptographic primitive or claim authenticity from unit-test doubles.
+3. **Provider interface:** define a host-neutral provisioning/execution/termination/attestation interface. No implementation may claim isolation from interface conformance alone.
+4. **Disposable host prototype:** select a concrete provider and implement one-attempt VM provisioning, policy enforcement, watchdog, cleanup, and authenticated receipt generation.
+5. **Host adversarial qualification:** execute controlled tests in disposable infrastructure attempting metadata access, egress, filesystem escape, process/memory/disk exhaustion, descendant survival, output escape, and cleanup interference. Verify host-observed denial and termination.
+6. **CiAi advisory adapter:** only after qualification, provide the report/receipt as a read-only provider packet and let CiAi independently validate it.
+7. **Real candidate opt-in:** enable candidate-controlled execution only after all preceding gates pass and the operator explicitly enables the qualified provider.
 
 ## Explicit non-claims
 
