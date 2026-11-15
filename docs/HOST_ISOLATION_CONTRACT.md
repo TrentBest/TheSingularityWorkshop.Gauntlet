@@ -99,6 +99,12 @@ This contract is platform-neutral. A future implementation must name and test it
 
 The implementation must include adversarial integration tests that attempt to exceed each declared boundary and verify host-observed denial/termination. Unit tests of request validation are necessary but do not prove operating-system enforcement.
 
+## Current schema-validation implementation
+
+The core library now defines version-1 request, finite-limit, effective-control, terminal-outcome, and receipt models in `HostIsolationContracts.cs`. Its validator rejects malformed or expired requests, unsupported schema versions, non-positive limits, unbounded attempts, candidate/profile/run mismatches, expired receipt timestamps, controls that were configured but not independently observed, unsuccessful process-tree termination, failed cleanup, and non-ordinary host outcomes.
+
+Receipt signature verification and replay registration are explicit injected interfaces. The core library does not contain a signing algorithm, trusted-key store, persistent replay database, provider adapter, or host implementation. Those responsibilities must be supplied by a separately reviewed adapter and CiAi must independently validate the evidence. Unit tests exercise schema and validation behavior only; they do not prove cryptographic authenticity, durable replay resistance, or OS-level enforcement.
+
 ## Explicit non-goals
 
 - Treating .NET cancellation tokens or elapsed-time checks as hard preemption.
