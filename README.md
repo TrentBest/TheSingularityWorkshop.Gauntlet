@@ -9,6 +9,7 @@
 
 [![Sith Policy](assets/sith-policy.svg)](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/workflows/sith-policy.yml)
 [![GUI.SVG badge contracts](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/workflows/badge.yml/badge.svg?branch=development)](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/workflows/badge.yml)
+[![Core contracts](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/workflows/core.yml/badge.svg?branch=development)](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/workflows/core.yml)
 
 **Software should earn its release.** Gauntlet is the Workshop's adversarial proving ground for MicroBundles and Experiences: it challenges a precisely identified candidate with bounded, reproducible probes, records what breaks, and returns evidence that the release pipeline can independently verify.
 
@@ -69,7 +70,7 @@ The ownership boundaries are deliberate:
 - **Foundry** coordinates bounded repair work and human handoff.
 - **GUI.SVG** generates the animated badge from the same status model; the badge is presentation, not evidence.
 
-See [Architecture](docs/ARCHITECTURE.md), [Run Contract](docs/RUN_CONTRACT.md), and the [local development guide](docs/DEVELOPMENT.md).
+See [Architecture](docs/ARCHITECTURE.md), [Run Contract](docs/RUN_CONTRACT.md), [Autonomous Development Pipeline](docs/AUTONOMOUS_DEVELOPMENT_PIPELINE.md), and the [local development guide](docs/DEVELOPMENT.md).
 
 ## 🟢 04 — See it in a minute
 
@@ -90,13 +91,14 @@ See the [Badge Specification](docs/BADGE_SPEC.md).
 
 This repository is being established. The implementation sequence is:
 
-1. Versioned campaign and run contracts.
-2. Deterministic, resource-bounded probe runner.
-3. Structured findings, score calculation, and immutable history.
-4. Deliberately vulnerable fixture and replay tests.
-5. GUI.SVG-generated animated badge and state fixtures.
-6. Read-only/advisory CiAi integration.
-7. Evidence-backed adoption by selected MicroBundles and Experiences.
+1. Initial versioned campaign/run/finding contracts and deterministic evaluator are implemented in src/Gauntlet.Core.
+2. Weighted scoring and profile-comparable history metrics are implemented and under contract testing.
+3. GUI.SVG badge generation and four state fixtures are CI-verified.
+4. Canonical report digest and integrity validation.
+5. Deterministic probe interface and isolated runner.
+6. Deliberately vulnerable fixture and replay tests.
+7. Read-only/advisory CiAi provider integration.
+8. Evidence-backed adoption by selected MicroBundles and Experiences.
 
 Track the work in [Gauntlet #1](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/issues/1) and the coordinated [CiAi integration issue #71](https://github.com/TrentBest/TheSingularityWorkshop.CiAi/issues/71).
 
