@@ -87,7 +87,7 @@ The algorithm and signature encoding are selected by a separately versioned prov
 
 Implementations must share published canonicalization and signature test vectors before interoperability is claimed. A non-empty signature string, a successful JSON parse, or a self-reported key ID is never proof of authenticity.
 
-The current C# receipt record and injected verifier are an initial schema-validation scaffold, not yet a complete implementation of this wire contract. In particular, the receipt model still needs the host image/platform and adapter version, network policy, input/output artifact metadata, and explicit terminal reason fields listed above. Do not enable a host adapter or candidate execution until the receipt schema and canonical wire representation are completed and independently tested.
+The current C# receipt record and injected verifier remain a schema-validation scaffold, not an implementation of this wire contract. The domain model now carries host runner image/platform and adapter version, an explicit deny-all network policy and observed egress-denial state, input/output artifact digests and byte counts, and an explicit terminal reason. Validation binds the input digest to the candidate artifact, enforces artifact byte ceilings, and checks terminal-reason/outcome consistency. A frozen JSON wire DTO, RFC 8785 implementation, positive/negative signature vectors, and real trusted-key verifier remain outstanding. Do not enable a host adapter or candidate execution until those pieces are completed and independently tested.
 
 ## Fail-closed conditions
 
