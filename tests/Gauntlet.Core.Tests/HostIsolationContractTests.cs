@@ -26,7 +26,12 @@ public sealed class HostIsolationContractTests
         1, "receipt-1", Request.RequestId, Request.Candidate,
         Request.ProfileId, Request.ProfileVersion, Request.ProfileDigest,
         Request.RunId, Request.Attempt, Now, Now.AddSeconds(2),
-        HostExecutionOutcome.Completed, Controls, true, true, true,
+        HostExecutionOutcome.Completed, HostTerminalReason.Completed,
+        "gauntlet-fixture-image@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "linux-x64", "fixture-adapter/1.0",
+        HostNetworkPolicy.DenyAll, true,
+        Request.Candidate.ArtifactDigest, 4096, null, 0,
+        Controls, true, true, true,
         "fixture-provider", "host-fixture-1", "test-key-1", "signed-payload");
 
     private sealed class AcceptSignature : IHostReceiptSignatureVerifier
@@ -184,6 +189,43 @@ public sealed class HostIsolationContractTests
             Request, Receipt, Now.AddMinutes(1), new RejectSignature(), replayGuard).IsValid);
         Assert.True(HostIsolationContractValidator.ValidateReceipt(
             Request, Receipt, Now.AddMinutes(1), new AcceptSignature(), replayGuard).IsValid);
+    }
+
+
+    [Fact]
+    public void Receipt_requires_host_platform_adapter_network_and_artifact_evidence()
+    {
+        var invalid = Receipt with
+        {
+            HostRunnerImage = "",
+            HostPlatform = "",
+            IsolationAdapterVersion = "",
+            NetworkEgressDeniedObserved = false,
+            InputArtifactDigest = $"sha256:{new string('d', 64)}",
+            InputArtifactBytes = 0
+        };
+        var result = HostIsolationContractValidator.ValidateReceipt(
+            Request, invalid, Now.AddMinutes(1), new AcceptSignature(), new ReplayGuard());
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, error => error.Contains("runner image/platform"));
+        Assert.Contains(result.Errors, error => error.Contains("deny-all network policy"));
+        Assert.Contains(result.Errors, error => error.Contains("Input artifact digest"));
+    }
+
+    [Fact]
+    public void Receipt_rejects_terminal_reason_mismatch_and_oversized_output()
+    {
+        var invalid = Receipt with
+        {
+            TerminalReason = HostTerminalReason.WatchdogTimeout,
+            OutputArtifactDigest = $"sha256:{new string('d', 64)}",
+            OutputArtifactBytes = Request.Limits.MaxArtifactBytes + 1
+        };
+        var result = HostIsolationContractValidator.ValidateReceipt(
+            Request, invalid, Now.AddMinutes(1), new AcceptSignature(), new ReplayGuard());
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, error => error.Contains("Terminal reason"));
+        Assert.Contains(result.Errors, error => error.Contains("Output artifact"));
     }
 
     [Fact]
