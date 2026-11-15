@@ -216,11 +216,31 @@ public static class HostIsolationContractValidator
         if (receipt.Outcome is not (HostExecutionOutcome.Completed or HostExecutionOutcome.CandidateFailed))
             errors.Add("Host execution did not reach an ordinary terminal outcome.");
 
-        if (errors.Count == 0 && !signatureVerifier.Verify(receipt))
-            errors.Add("Receipt signature is invalid or its signing key is not trusted.");
+        if (errors.Count == 0)
+        {
+            try
+            {
+                if (!signatureVerifier.Verify(receipt))
+                    errors.Add("Receipt signature is invalid or its signing key is not trusted.");
+            }
+            catch
+            {
+                errors.Add("Receipt signature verification failed unexpectedly.");
+            }
+        }
 
-        if (errors.Count == 0 && !replayGuard.TryRegister(receipt.ReceiptId))
-            errors.Add("Receipt identifier has already been accepted.");
+        if (errors.Count == 0)
+        {
+            try
+            {
+                if (!replayGuard.TryRegister(receipt.ReceiptId))
+                    errors.Add("Receipt identifier has already been accepted.");
+            }
+            catch
+            {
+                errors.Add("Receipt replay registration failed unexpectedly.");
+            }
+        }
 
         return errors.Count == 0 ? HostContractValidationResult.Valid() : HostContractValidationResult.Invalid(errors);
     }
@@ -244,7 +264,8 @@ public static class HostIsolationContractValidator
         IsBounded(controls.ArtifactLimit, limits.MaxArtifactBytes) &&
         IsBounded(controls.ArtifactCountLimit, limits.MaxArtifactCount);
 
-    private static bool IsBounded(HostControlEvidence evidence, long requestedLimit) =>
+    private static bool IsBounded(HostControlEvidence? evidence, long requestedLimit) =>
+        evidence is not null &&
         evidence.ConfiguredLimit is > 0 && evidence.ObservedLimit is > 0 &&
         evidence.ConfiguredLimit <= requestedLimit && evidence.ObservedLimit <= evidence.ConfiguredLimit;
 
