@@ -167,6 +167,9 @@ The repository currently contains:
 - a deterministic campaign evaluator with exact candidate/profile matching, required-probe completeness, weighted scoring, and fail-closed severity handling;
 - canonical report digest sealing and verification;
 - comparable history aggregation for average, delta, survived, failed, and incomplete counts;
-- a GUI.SVG-backed animated badge generator with four validated state fixtures.
+- a GUI.SVG-backed animated badge generator with four validated state fixtures;
+- a deterministic, sequential in-process runner for Gauntlet-owned trusted probes;
+- runner checks for profile membership, version identity, duplicate IDs, assertion bounds, cancellation, and elapsed duration;
+- a harmless in-memory vulnerable fixture whose negative-quantity defect is detected as a high-severity finding and rejected by the campaign evaluator.
 
-The next implementation work is the deterministic probe interface and isolated runner, the harmless vulnerable fixture, and then the CiAi provider adapter. These are not yet claimed as complete.
+The runner is not a sandbox. It cannot preempt non-cooperative code or enforce process, memory, filesystem, or network isolation. It does not execute candidate-supplied code. The next milestone is a host-owned isolation adapter with enforceable quotas and attested cleanup, followed by the CiAi provider adapter. Neither is complete.
