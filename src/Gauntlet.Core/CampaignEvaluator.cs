@@ -6,6 +6,11 @@ namespace TheSingularityWorkshop.Gauntlet;
 /// </summary>
 public static class CampaignEvaluator
 {
+    /// <summary>Evaluates a report against an independently supplied candidate identity and trusted campaign profile.</summary>
+    /// <param name="profile">The immutable profile whose probe inventory and policy are authoritative.</param>
+    /// <param name="expectedCandidate">The exact candidate identity expected by the caller.</param>
+    /// <param name="report">The observed campaign report to evaluate.</param>
+    /// <returns>A deterministic pass, fail, incomplete, or invalid result. Provider trust is evaluated separately.</returns>
     public static EvaluationResult Evaluate(
         CampaignProfile profile,
         CandidateIdentity expectedCandidate,
