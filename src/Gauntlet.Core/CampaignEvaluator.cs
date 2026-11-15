@@ -212,7 +212,7 @@ public static class CampaignEvaluator
     {
         if (string.IsNullOrWhiteSpace(profile.Id) ||
             profile.Version < 1 ||
-            string.IsNullOrWhiteSpace(profile.Digest) ||
+            !IsSha256Digest(profile.Digest) ||
             profile.Probes is null ||
             profile.BlockingSeverities is null)
         {
@@ -246,16 +246,18 @@ public static class CampaignEvaluator
 
     private static bool IsValidCandidate(CandidateIdentity candidate) =>
         !string.IsNullOrWhiteSpace(candidate.Repository) &&
-        candidate.Repository.Contains('/', StringComparison.Ordinal) &&
+        candidate.Repository.Contains('/') &&
         IsHexDigest(candidate.CommitSha, 40, 64) &&
         IsSha256Digest(candidate.ArtifactDigest) &&
         (candidate.ManifestDigest is null || IsSha256Digest(candidate.ManifestDigest));
 
-    private static bool IsSha256Digest(string value) =>
+    private static bool IsSha256Digest(string? value) =>
+        value is not null &&
         value.StartsWith("sha256:", StringComparison.Ordinal) &&
         IsHexDigest(value[7..], 64, 64);
 
-    private static bool IsHexDigest(string value, int minimumLength, int maximumLength) =>
+    private static bool IsHexDigest(string? value, int minimumLength, int maximumLength) =>
+        value is not null &&
         value.Length >= minimumLength &&
         value.Length <= maximumLength &&
         value.All(Uri.IsHexDigit);
