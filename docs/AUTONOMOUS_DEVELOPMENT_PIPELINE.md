@@ -37,7 +37,7 @@ CiAi independently validates provider and candidate binding
   Fail closed                   v
                         Gate policy evaluation
                                  |
-                      +----------+----------+
+                      +----------+----------
                       |                     |
                    Failed                 Passed
                       |                     |
@@ -174,4 +174,8 @@ The repository currently contains:
 
 The runner is not a sandbox. It cannot preempt non-cooperative code or enforce process, memory, filesystem, or network isolation. It does not execute candidate-supplied code.
 
-The core now also contains version-1 host request, limits, effective-control, outcome, and receipt contracts with fail-closed structural and identity validation. Missing nested control evidence and exceptions from signature/replay adapters are rejected as validation failures rather than escaping the validator. Signature verification and replay protection are injected interfaces, not implemented trust services. Fifteen unit tests cover request bounds, expiry, identity binding, observed controls, cleanup, signatures, replay behavior, malformed nested evidence, and adapter exceptions. These tests do not prove cryptographic authenticity or OS enforcement. The next milestone is to implement and validate a host-owned isolation adapter against the requirements in [HOST_ISOLATION_CONTRACT.md](HOST_ISOLATION_CONTRACT.md) and the proposed [HOST_ADAPTER_DECISION.md](HOST_ADAPTER_DECISION.md). GitHub Actions remains orchestration and report transport; candidate-controlled execution belongs only in a separately provisioned, disposable, host-attested environment. That contract is a design specification, not evidence that any host currently enforces those controls. The adapter must pass host-level adversarial integration tests and produce a verifiable execution receipt before candidate-controlled execution is enabled. The CiAi provider adapter follows that milestone; neither adapter is complete.
+The core also contains version-1 host request, limits, effective-control, outcome, and receipt contracts with fail-closed structural and identity validation. Missing nested control evidence and exceptions from signature/replay adapters are rejected. Fifteen unit tests cover request bounds, expiry, identity binding, observed controls, cleanup, signatures, replay behavior, malformed nested evidence, and adapter exceptions. These tests do not prove cryptographic authenticity or OS enforcement.
+
+The host receipt design now specifies RFC 8785 JSON Canonicalization Scheme, a signature-excluded canonical payload, a fixed domain separator, and provider-owned key/algorithm policy. This is a documented wire-contract decision, not an implemented canonicalizer or cryptographic verifier. The current C# receipt model is still incomplete: host image/platform and adapter version, network policy, input/output artifact metadata, and explicit terminal reason must be added before the wire schema is frozen. The next implementation milestone is to complete and test that schema and its canonicalization/signature vectors, then define the host-neutral provider lifecycle. See [HOST_ISOLATION_CONTRACT.md](HOST_ISOLATION_CONTRACT.md) and [HOST_ADAPTER_DECISION.md](HOST_ADAPTER_DECISION.md).
+
+GitHub Actions remains orchestration and report transport; candidate-controlled execution belongs only in a separately provisioned, disposable, host-attested environment. The adapter must pass host-level adversarial integration tests and produce a verifiable execution receipt before candidate-controlled execution is enabled. The CiAi provider adapter follows that milestone; neither adapter is complete.
