@@ -63,6 +63,6 @@ RFC 8785 Appendix G lists the `cyberphone/json-canonicalization` .NET implementa
 - [ ] Verify the exact domain-separated bytes and signature-excluded projection independently.
 - [ ] Verify unknown schema versions, unknown fields, duplicate names, invalid Unicode, oversized payloads, and malformed signatures all fail closed.
 - [ ] Build and run the complete Gauntlet test suite in CI.
-- [ ] Keep the verifier interface byte-oriented so it receives the exact canonical signed payload, not a domain object that it must independently serialize.
+- [x] Keep the verifier interface byte-oriented so it receives the exact canonical signed payload, not a domain object that it must independently serialize. The core validation seam accepts non-empty canonical signed bytes and passes them with signing key ID/provider/host identity to the verifier; canonical byte production remains unimplemented.
 
 Until these criteria pass, the current receipt signature verifier remains an injected test scaffold and the receipt model remains a domain model, not a frozen wire protocol.
