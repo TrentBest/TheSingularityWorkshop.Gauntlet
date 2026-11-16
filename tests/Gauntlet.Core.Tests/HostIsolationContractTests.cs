@@ -1,3 +1,4 @@
+using System.Text;
 using TheSingularityWorkshop.Gauntlet;
 using Xunit;
 
@@ -36,17 +37,17 @@ public sealed class HostIsolationContractTests
 
     private sealed class AcceptSignature : IHostReceiptSignatureVerifier
     {
-        public bool Verify(HostExecutionReceipt receipt) => true;
+        public bool Verify(ReadOnlyMemory<byte> canonicalSignedPayload, string signingKeyId, string hostProvider, string hostIdentity) => !canonicalSignedPayload.IsEmpty && signingKeyId == "test-key-1" && hostProvider == "fixture-provider" && hostIdentity == "host-fixture-1";
     }
 
     private sealed class RejectSignature : IHostReceiptSignatureVerifier
     {
-        public bool Verify(HostExecutionReceipt receipt) => false;
+        public bool Verify(ReadOnlyMemory<byte> canonicalSignedPayload, string signingKeyId, string hostProvider, string hostIdentity) => false;
     }
 
     private sealed class ThrowingSignature : IHostReceiptSignatureVerifier
     {
-        public bool Verify(HostExecutionReceipt receipt) => throw new InvalidOperationException("adapter failure");
+        public bool Verify(ReadOnlyMemory<byte> canonicalSignedPayload, string signingKeyId, string hostProvider, string hostIdentity) => throw new InvalidOperationException("adapter failure");
     }
 
     private sealed class ThrowingReplayGuard : IHostReceiptReplayGuard
@@ -107,9 +108,9 @@ public sealed class HostIsolationContractTests
     {
         var replayGuard = new ReplayGuard();
         Assert.True(HostIsolationContractValidator.ValidateReceipt(
-            Request, Receipt, Now.AddMinutes(1), new AcceptSignature(), replayGuard).IsValid);
+            Request, Receipt, Encoding.UTF8.GetBytes("canonical-test-payload"), Now.AddMinutes(1), new AcceptSignature(), replayGuard).IsValid);
         Assert.False(HostIsolationContractValidator.ValidateReceipt(
-            Request, Receipt, Now.AddMinutes(1), new AcceptSignature(), replayGuard).IsValid);
+            Request, Receipt, Encoding.UTF8.GetBytes("canonical-test-payload"), Now.AddMinutes(1), new AcceptSignature(), replayGuard).IsValid);
     }
 
     [Fact]
@@ -117,7 +118,7 @@ public sealed class HostIsolationContractTests
     {
         var mismatch = Receipt with { Candidate = Receipt.Candidate with { CommitSha = new string('d', 40) } };
         var result = HostIsolationContractValidator.ValidateReceipt(
-            Request, mismatch, Now.AddMinutes(1), new AcceptSignature(), new ReplayGuard());
+            Request, mismatch, Encoding.UTF8.GetBytes("canonical-test-payload"), Now.AddMinutes(1), new AcceptSignature(), new ReplayGuard());
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, error => error.Contains("exact requested candidate"));
     }
@@ -127,7 +128,7 @@ public sealed class HostIsolationContractTests
     {
         var controls = Controls with { NetworkEgressDenied = new HostControlEvidence(true, false) };
         var result = HostIsolationContractValidator.ValidateReceipt(
-            Request, Receipt with { EffectiveControls = controls }, Now.AddMinutes(1),
+            Request, Receipt with { EffectiveControls = controls }, Encoding.UTF8.GetBytes("canonical-test-payload"), Now.AddMinutes(1),
             new AcceptSignature(), new ReplayGuard());
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, error => error.Contains("observed as enforced"));
@@ -138,7 +139,7 @@ public sealed class HostIsolationContractTests
     {
         var controls = Controls with { MemoryLimit = Limit(513) };
         var result = HostIsolationContractValidator.ValidateReceipt(
-            Request, Receipt with { EffectiveControls = controls }, Now.AddMinutes(1),
+            Request, Receipt with { EffectiveControls = controls }, Encoding.UTF8.GetBytes("canonical-test-payload"), Now.AddMinutes(1),
             new AcceptSignature(), new ReplayGuard());
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, error => error.Contains("resource limits exceed"));
@@ -148,7 +149,7 @@ public sealed class HostIsolationContractTests
     {
         var controls = Controls with { MemoryLimit = null! };
         var result = HostIsolationContractValidator.ValidateReceipt(
-            Request, Receipt with { EffectiveControls = controls }, Now.AddMinutes(1),
+            Request, Receipt with { EffectiveControls = controls }, Encoding.UTF8.GetBytes("canonical-test-payload"), Now.AddMinutes(1),
             new AcceptSignature(), new ReplayGuard());
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, error => error.Contains("controls were not configured"));
@@ -158,7 +159,7 @@ public sealed class HostIsolationContractTests
     public void Signature_verifier_exception_is_rejected()
     {
         var result = HostIsolationContractValidator.ValidateReceipt(
-            Request, Receipt, Now.AddMinutes(1), new ThrowingSignature(), new ReplayGuard());
+            Request, Receipt, Encoding.UTF8.GetBytes("canonical-test-payload"), Now.AddMinutes(1), new ThrowingSignature(), new ReplayGuard());
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, error => error.Contains("verification failed unexpectedly"));
     }
@@ -167,7 +168,7 @@ public sealed class HostIsolationContractTests
     public void Replay_guard_exception_is_rejected()
     {
         var result = HostIsolationContractValidator.ValidateReceipt(
-            Request, Receipt, Now.AddMinutes(1), new AcceptSignature(), new ThrowingReplayGuard());
+            Request, Receipt, Encoding.UTF8.GetBytes("canonical-test-payload"), Now.AddMinutes(1), new AcceptSignature(), new ThrowingReplayGuard());
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, error => error.Contains("replay registration failed unexpectedly"));
     }
@@ -176,8 +177,7 @@ public sealed class HostIsolationContractTests
     public void Failed_cleanup_or_live_process_tree_is_rejected()
     {
         var result = HostIsolationContractValidator.ValidateReceipt(
-            Request, Receipt with { CleanupSucceeded = false, ProcessTreeTerminated = false },
-            Now.AddMinutes(1), new AcceptSignature(), new ReplayGuard());
+            Request, Receipt with { CleanupSucceeded = false, ProcessTreeTerminated = false }, Encoding.UTF8.GetBytes("canonical-test-payload"), Now.AddMinutes(1), new AcceptSignature(), new ReplayGuard());
         Assert.False(result.IsValid);
     }
 
@@ -186,9 +186,9 @@ public sealed class HostIsolationContractTests
     {
         var replayGuard = new ReplayGuard();
         Assert.False(HostIsolationContractValidator.ValidateReceipt(
-            Request, Receipt, Now.AddMinutes(1), new RejectSignature(), replayGuard).IsValid);
+            Request, Receipt, Encoding.UTF8.GetBytes("canonical-test-payload"), Now.AddMinutes(1), new RejectSignature(), replayGuard).IsValid);
         Assert.True(HostIsolationContractValidator.ValidateReceipt(
-            Request, Receipt, Now.AddMinutes(1), new AcceptSignature(), replayGuard).IsValid);
+            Request, Receipt, Encoding.UTF8.GetBytes("canonical-test-payload"), Now.AddMinutes(1), new AcceptSignature(), replayGuard).IsValid);
     }
 
 
@@ -206,7 +206,7 @@ public sealed class HostIsolationContractTests
             InputArtifactCount = Request.Limits.MaxArtifactCount + 1
         };
         var result = HostIsolationContractValidator.ValidateReceipt(
-            Request, invalid, Now.AddMinutes(1), new AcceptSignature(), new ReplayGuard());
+            Request, invalid, Encoding.UTF8.GetBytes("canonical-test-payload"), Now.AddMinutes(1), new AcceptSignature(), new ReplayGuard());
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, error => error.Contains("runner image/platform"));
         Assert.Contains(result.Errors, error => error.Contains("deny-all network policy"));
@@ -223,7 +223,7 @@ public sealed class HostIsolationContractTests
             OutputArtifactBytes = Request.Limits.MaxArtifactBytes + 1
         };
         var result = HostIsolationContractValidator.ValidateReceipt(
-            Request, invalid, Now.AddMinutes(1), new AcceptSignature(), new ReplayGuard());
+            Request, invalid, Encoding.UTF8.GetBytes("canonical-test-payload"), Now.AddMinutes(1), new AcceptSignature(), new ReplayGuard());
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, error => error.Contains("Terminal reason"));
         Assert.Contains(result.Errors, error => error.Contains("Output artifact"));
@@ -235,7 +235,7 @@ public sealed class HostIsolationContractTests
     {
         var tooManyInputs = Receipt with { InputArtifactCount = Request.Limits.MaxArtifactCount + 1 };
         var inputResult = HostIsolationContractValidator.ValidateReceipt(
-            Request, tooManyInputs, Now.AddMinutes(1), new AcceptSignature(), new ReplayGuard());
+            Request, tooManyInputs, Encoding.UTF8.GetBytes("canonical-test-payload"), Now.AddMinutes(1), new AcceptSignature(), new ReplayGuard());
         Assert.False(inputResult.IsValid);
         Assert.Contains(inputResult.Errors, error => error.Contains("Input artifact digest"));
 
@@ -246,7 +246,7 @@ public sealed class HostIsolationContractTests
             OutputArtifactCount = Request.Limits.MaxArtifactCount + 1
         };
         var outputResult = HostIsolationContractValidator.ValidateReceipt(
-            Request, tooManyOutputs, Now.AddMinutes(1), new AcceptSignature(), new ReplayGuard());
+            Request, tooManyOutputs, Encoding.UTF8.GetBytes("canonical-test-payload"), Now.AddMinutes(1), new AcceptSignature(), new ReplayGuard());
         Assert.False(outputResult.IsValid);
         Assert.Contains(outputResult.Errors, error => error.Contains("Output artifact"));
     }
@@ -255,8 +255,7 @@ public sealed class HostIsolationContractTests
     public void Incomplete_host_outcome_is_rejected()
     {
         var result = HostIsolationContractValidator.ValidateReceipt(
-            Request, Receipt with { Outcome = HostExecutionOutcome.CleanupFailed },
-            Now.AddMinutes(1), new AcceptSignature(), new ReplayGuard());
+            Request, Receipt with { Outcome = HostExecutionOutcome.CleanupFailed }, Encoding.UTF8.GetBytes("canonical-test-payload"), Now.AddMinutes(1), new AcceptSignature(), new ReplayGuard());
         Assert.False(result.IsValid);
     }
 }
