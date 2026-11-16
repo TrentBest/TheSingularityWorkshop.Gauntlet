@@ -132,7 +132,7 @@
 - [x] Workflows use read-only permissions where feasible; badge workflow pins its checkout/setup/upload actions to immutable SHAs.
 - [x] Sith policy currently reports exactly `master` and `development`.
 - [ ] Run the complete Release build and test suite from a clean checkout of the exact release-candidate SHA.
-- [ ] Run all badge fixture generation and verification from a clean checkout; archive the exact generated artifacts.
+- [ ] Run all badge fixture generation and verification from a clean checkout; archive the exact generated artifacts. The 2026-11-16 run exposed a target-framework drift: GUI.Core/GUI.SVG now target .NET 10 while the badge sample/workflow still targeted .NET 8. The sample and workflow have been aligned to .NET 10; rerun and verify this gate.
 - [ ] Add explicit workflow for formatting/analyzers and fail on warnings selected by policy.
 - [ ] Add dependency vulnerability/advisory review and an automated dependency update policy.
 - [ ] Review all GitHub Actions permissions, event triggers, third-party actions, token scopes, artifact handling, and untrusted-input interpolation.
@@ -194,7 +194,8 @@ Add one row per material gate result. Prefer immutable commit SHAs and workflow 
 | 2026-11-15 | Sith branch policy | Passed at recorded run | `035e836731d0549ba49ee94f379237bcc0597ce8` | [Sith policy workflow baseline](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/43680994917) |
 | 2026-11-15 | RFC 8785 implementation assessment | Research/documentation only; no dependency accepted | `035e836731d0549ba49ee94f379237bcc0597ce8` | [JCS implementation assessment](JCS_IMPLEMENTATION_ASSESSMENT.md) |
 | 2026-11-16 | Checklist creation | Added as living release gate; verification still pending | `c70a9bab661eeb019e872eab46149fdfd6a1c2a6` | This file |
-| 2026-11-16 | Receipt verifier boundary | Byte-oriented canonical-payload seam and empty-payload rejection added; tests authored, CI verification pending | `ea54d1f2110f9cd8f9993611cccb9c2d1c0eb2d9` | [Host receipt contract](HOST_ISOLATION_CONTRACT.md); [JCS assessment](JCS_IMPLEMENTATION_ASSESSMENT.md) |
+| 2026-11-16 | Receipt verifier boundary | Byte-oriented canonical-payload seam and empty-payload rejection added; core CI passed at current development head | `6e7bf52d19e88009dcdc3f2612d22374426853e7` | [Core workflow](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/43811905213); [Host receipt contract](HOST_ISOLATION_CONTRACT.md) |
+| 2026-11-16 | Badge toolchain drift | Failure identified: GUI source is net10.0 but sample/workflow were net8.0; alignment committed, verification pending | pending | [Failed badge run](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/43811905312) — NU1201 incompatibility |
 
 ## Final approval record
 
