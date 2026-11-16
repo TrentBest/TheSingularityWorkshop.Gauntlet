@@ -130,7 +130,7 @@ public sealed record HostExecutionReceipt(
 public interface IHostReceiptSignatureVerifier
 {
     /// <summary>Returns true only when the signature is valid for the exact canonical receipt and trusted key.</summary>
-    bool Verify(HostExecutionReceipt receipt);
+    bool Verify(ReadOnlyMemory<byte> canonicalSignedPayload, string signingKeyId, string hostProvider, string hostIdentity);
 }
 
 /// <summary>Atomically rejects receipt identifiers that have already been accepted.</summary>
@@ -209,6 +209,7 @@ public static class HostIsolationContractValidator
     public static HostContractValidationResult ValidateReceipt(
         HostExecutionRequest request,
         HostExecutionReceipt? receipt,
+        ReadOnlyMemory<byte> canonicalSignedPayload,
         DateTimeOffset now,
         IHostReceiptSignatureVerifier signatureVerifier,
         IHostReceiptReplayGuard replayGuard)
@@ -224,6 +225,8 @@ public static class HostIsolationContractValidator
         var errors = new List<string>();
         if (receipt is null)
             return HostContractValidationResult.Invalid(["Receipt is missing."]);
+        if (canonicalSignedPayload.IsEmpty)
+            return HostContractValidationResult.Invalid(["Canonical signed receipt payload is missing."]);
         if (receipt.SchemaVersion != CurrentSchemaVersion)
             errors.Add("Receipt schema version is unsupported.");
         if (string.IsNullOrWhiteSpace(receipt.ReceiptId) || string.IsNullOrWhiteSpace(receipt.RequestId))
@@ -283,7 +286,7 @@ public static class HostIsolationContractValidator
         {
             try
             {
-                if (!signatureVerifier.Verify(receipt))
+                if (!signatureVerifier.Verify(canonicalSignedPayload, receipt.SigningKeyId, receipt.HostProvider, receipt.HostIdentity))
                     errors.Add("Receipt signature is invalid or its signing key is not trusted.");
             }
             catch
