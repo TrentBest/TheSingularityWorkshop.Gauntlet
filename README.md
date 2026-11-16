@@ -11,6 +11,10 @@
 [![GUI.SVG badge contracts](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/workflows/badge.yml/badge.svg?branch=development)](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/workflows/badge.yml)
 [![Core contracts](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/workflows/core.yml/badge.svg?branch=development)](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/workflows/core.yml)
 
+**Release readiness: NOT READY — owner review and explicit publication approval required.**
+
+The authoritative working release checklist is [docs/RELEASE_READINESS.md](docs/RELEASE_READINESS.md). It records implementation gates, required evidence, known blockers, exact-candidate verification, and the final owner approval boundary. Keep it current as work progresses.
+
 **Software should earn its release.** Gauntlet is the Workshop's adversarial proving ground for MicroBundles and Experiences: it challenges a precisely identified candidate with bounded, reproducible probes, records what breaks, and returns evidence that the release pipeline can independently verify.
 
 Gauntlet is not a vulnerability scanner that blindly attacks arbitrary targets, a replacement for ordinary tests, or an authorization service. It is a controlled verification campaign with explicit scope, limits, expected invariants, and replayable results.
@@ -33,7 +37,7 @@ The score communicates measured campaign performance; it never overrides a criti
 
 ## 🩵 03 — How
 
-\`\`\`text
+```text
 Exact candidate + artifact/manifest digest
                  |
                  v
@@ -58,7 +62,7 @@ Exact candidate + artifact/manifest digest
      Repair evidence   Eligible evidence
           |             |
           +------> bounded development loop
-\`\`\`
+```
 
 The ownership boundaries are deliberate:
 
@@ -100,7 +104,7 @@ This repository is being established. The implementation sequence is:
 7. Read-only/advisory CiAi provider integration.
 8. Evidence-backed adoption by selected MicroBundles and Experiences.
 
-Track the work in [Gauntlet #1](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/issues/1) and the coordinated [CiAi integration issue #71](https://github.com/TrentBest/TheSingularityWorkshop.CiAi/issues/71).
+Track the work in [Gauntlet #1](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/issues/1) and the coordinated [CiAi integration issue #71](https://github.com/TrentBest/TheSingularityWorkshop.CiAi/issues/71). Release completion is governed by the [living release checklist](docs/RELEASE_READINESS.md).
 
 No merge, publication, release, deployment, protected-branch mutation, or authorization-gate weakening is implied by a passing campaign. Existing human approval remains authoritative.
 
