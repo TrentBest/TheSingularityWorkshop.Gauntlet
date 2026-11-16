@@ -2,7 +2,7 @@
 
 ## Repository layout
 
-The badge generator uses the real GUI.Core and GUI.SVG source projects. Clone both repositories as siblings:
+The badge generator uses the real GUI.Core and GUI.SVG source projects. The current GUI source targets .NET 10, so install both the .NET 8 SDK (for Gauntlet.Core tests) and the .NET 10 SDK (for the GUI.SVG badge sample). Clone both repositories as siblings:
 
 ~~~text
 workspace/
