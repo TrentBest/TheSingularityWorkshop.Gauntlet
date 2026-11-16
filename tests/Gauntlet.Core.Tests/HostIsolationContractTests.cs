@@ -258,4 +258,15 @@ public sealed class HostIsolationContractTests
             Request, Receipt with { Outcome = HostExecutionOutcome.CleanupFailed }, Encoding.UTF8.GetBytes("canonical-test-payload"), Now.AddMinutes(1), new AcceptSignature(), new ReplayGuard());
         Assert.False(result.IsValid);
     }
+    [Fact]
+    public void Missing_canonical_signed_payload_is_rejected_before_signature_verification()
+    {
+        var result = HostIsolationContractValidator.ValidateReceipt(
+            Request, Receipt, ReadOnlyMemory<byte>.Empty, Now.AddMinutes(1),
+            new AcceptSignature(), new ReplayGuard());
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, error => error.Contains("Canonical signed receipt payload is missing"));
+    }
+
 }
