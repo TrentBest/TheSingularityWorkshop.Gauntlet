@@ -79,6 +79,7 @@
 - [ ] Implement RFC 8785 JCS canonicalization using an audited implementation; complete dependency, source provenance, package hash, license, and advisory review before accepting any package.
 - [ ] Add independent positive/negative RFC 8785 vectors, including number edge cases, property ordering, duplicate names, Unicode, depth, and signature-excluded projection.
 - [ ] Implement and review the exact signature payload: remove only top-level `signature`, retain `signingKeyId`, canonicalize, UTF-8 encode, prepend the documented domain separator.
+- [x] Keep the signature-verifier boundary byte-oriented: validation requires non-empty canonical signed bytes and passes them with signing key ID/provider/host identity context. This is an interface seam only; JCS byte production and cryptographic verification remain open.
 - [ ] Implement provider trust policy: key identity, algorithm allowlist, key validity, rotation, revocation, and provider binding. No self-asserted key trust.
 - [ ] Implement durable replay protection with concurrency and retention semantics; test replay across process restarts.
 - [ ] Implement a host adapter with fresh one-attempt environments, independently observed controls, watchdog VM termination, and verified cleanup.
@@ -192,7 +193,8 @@ Add one row per material gate result. Prefer immutable commit SHAs and workflow 
 | 2026-11-15 | Badge generation and fixtures | Passed at recorded run | `035e836731d0549ba49ee94f379237bcc0597ce8` | [Badge workflow baseline](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/43680994906) |
 | 2026-11-15 | Sith branch policy | Passed at recorded run | `035e836731d0549ba49ee94f379237bcc0597ce8` | [Sith policy workflow baseline](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/43680994917) |
 | 2026-11-15 | RFC 8785 implementation assessment | Research/documentation only; no dependency accepted | `035e836731d0549ba49ee94f379237bcc0597ce8` | [JCS implementation assessment](JCS_IMPLEMENTATION_ASSESSMENT.md) |
-| 2026-11-16 | Checklist creation | Added as living release gate; verification still pending | pending | This file |
+| 2026-11-16 | Checklist creation | Added as living release gate; verification still pending | `c70a9bab661eeb019e872eab46149fdfd6a1c2a6` | This file |
+| 2026-11-16 | Receipt verifier boundary | Byte-oriented canonical-payload seam and empty-payload rejection added; tests authored, CI verification pending | `ea54d1f2110f9cd8f9993611cccb9c2d1c0eb2d9` | [Host receipt contract](HOST_ISOLATION_CONTRACT.md); [JCS assessment](JCS_IMPLEMENTATION_ASSESSMENT.md) |
 
 ## Final approval record
 
