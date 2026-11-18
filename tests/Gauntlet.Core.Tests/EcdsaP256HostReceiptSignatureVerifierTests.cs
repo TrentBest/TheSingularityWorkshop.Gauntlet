@@ -108,6 +108,24 @@ public sealed class EcdsaP256HostReceiptSignatureVerifierTests
         Assert.False(verifier.Verify(Payload, new string('A', 86), KeyId, Provider, Host, Now));
     }
 
+
+    [Fact]
+    public void Immutable_trust_store_snapshots_entries_and_rejects_duplicate_key_ids()
+    {
+        using var privateKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var entry = Entry(privateKey.ExportSubjectPublicKeyInfo());
+        var mutableSource = new List<HostReceiptTrustedKey> { entry };
+        var store = new ImmutableHostReceiptTrustStore(mutableSource);
+
+        mutableSource.Clear();
+
+        Assert.True(store.TryGetKey(KeyId, out var found));
+        Assert.Same(entry, found);
+        Assert.False(store.TryGetKey("unknown-key", out _));
+        Assert.Throws<ArgumentException>(() =>
+            new ImmutableHostReceiptTrustStore([entry, entry]));
+    }
+
     private static HostReceiptTrustedKey Entry(
         byte[] publicKey,
         string algorithm = EcdsaP256HostReceiptSignatureVerifier.Algorithm,
