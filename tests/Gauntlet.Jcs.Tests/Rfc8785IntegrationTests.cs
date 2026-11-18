@@ -291,6 +291,6 @@ public sealed class Rfc8785IntegrationTests
         HostProvider = "fixture-provider",
         HostIdentity = "fixture-host",
         SigningKeyId = "fixture-key-1",
-        Signature = "fixture-signature"
+        Signature = new string('A', 86)
     };
 }
