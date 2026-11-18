@@ -73,9 +73,9 @@
 - [x] Host adapter decision explicitly selects GitHub Actions as orchestration/transport only and a separate disposable VM or equivalent strong boundary for candidate execution.
 - [x] Core request/receipt models and structural validator exist, including candidate/profile/run binding, requested/configured/observed controls, artifact counts/bytes/digests, terminal reason, cleanup, and injected signature/replay seams.
 - [x] Documentation states that these models are not a host implementation, cryptographic verifier, or proof of OS enforcement.
-- [ ] Freeze a versioned JSON wire schema and DTOs using the Workshop JSON standard (`System.Text.Json`); pin exact property names, types, required fields, null behavior, and unknown-field policy.
-- [ ] Enforce bounded raw receipt size and strict UTF-8/JSON parsing before schema mapping.
-- [ ] Reject duplicate decoded property names, invalid Unicode, non-I-JSON values, unknown schema versions, and malformed values without coercion.
+- [x] Freeze the version-1 host receipt JSON wire DTOs using the Workshop JSON standard (`System.Text.Json`); exact property names, types, required members, explicit nullable fields, case-sensitive names, and unknown-field rejection are defined in `HostReceiptJsonV1.cs`. Semantic request/receipt binding remains in the domain validator.
+- [x] Enforce a 1 MiB raw receipt limit, UTF-8 JSON parsing, BOM rejection, strict JSON syntax, and depth limit before schema mapping.
+- [~] Reject duplicate decoded property names (including escaped aliases), malformed Unicode scalar strings, unknown fields, unsupported schema versions, unknown enum vocabulary, and malformed values without coercion. Expand independent I-JSON and canonicalizer edge-case vectors in the JCS spike.
 - [ ] Implement RFC 8785 JCS canonicalization using an audited implementation; complete dependency, source provenance, package hash, license, and advisory review before accepting any package.
 - [ ] Add independent positive/negative RFC 8785 vectors, including number edge cases, property ordering, duplicate names, Unicode, depth, and signature-excluded projection.
 - [ ] Implement and review the exact signature payload: remove only top-level `signature`, retain `signingKeyId`, canonicalize, UTF-8 encode, prepend the documented domain separator.
@@ -131,8 +131,8 @@
 - [x] Badge and Sith policy workflows exist.
 - [x] Workflows use read-only permissions where feasible; badge workflow pins its checkout/setup/upload actions to immutable SHAs.
 - [x] Sith policy currently reports exactly `master` and `development`.
-- [ ] Run the complete Release build and test suite from a clean checkout of the exact release-candidate SHA.
-- [ ] Run all badge fixture generation and verification from a clean checkout; archive the exact generated artifacts. The 2026-11-16 run exposed a target-framework drift: GUI.Core/GUI.SVG now target .NET 10 while the badge sample/workflow still targeted .NET 8. The sample and workflow have been aligned to .NET 10; rerun and verify this gate.
+- [ ] Run the complete Release build and test suite from a clean checkout of the exact release-candidate SHA. Core and tests are now targeting .NET 10; validate the full workflow after this migration.
+- [ ] Run all badge fixture generation and verification from a clean checkout; archive the exact generated artifacts. The badge workflow and sample now use .NET 10 only; rerun and verify this gate.
 - [ ] Add explicit workflow for formatting/analyzers and fail on warnings selected by policy.
 - [ ] Add dependency vulnerability/advisory review and an automated dependency update policy.
 - [ ] Review all GitHub Actions permissions, event triggers, third-party actions, token scopes, artifact handling, and untrusted-input interpolation.
@@ -153,6 +153,7 @@
 ## Gate 7 — Documentation and developer experience
 
 - [x] README describes purpose, boundaries, architecture, initial implementation, and safety caveats.
+- [x] README links directly to this living release checklist and displays the current not-ready state.
 - [x] Architecture, run contract, development, badge, autonomous pipeline, host isolation, host adapter, and JCS assessment documents exist.
 - [ ] Ensure README links to this checklist and clearly displays current release readiness state.
 - [ ] Document installation and a minimal consumer example for the actual first release surface.
