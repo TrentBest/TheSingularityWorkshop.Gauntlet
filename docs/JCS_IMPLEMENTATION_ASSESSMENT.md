@@ -31,6 +31,18 @@ Its source uses the C# ECMAScript number serializer from the RFC 8785 authors' `
 
 The package's test suite includes RFC 8785 Appendix G vectors, Appendix B finite-number vectors, strict-input and semantic-rejection cases, duplicate decoded property names, negative zero, depth boundaries, deep parsed-element traversal, and returned-buffer ownership. These are useful upstream tests, but they do not replace Gauntlet's own compatibility vectors or CI verification.
 
+## Updated dependency and security review (2026-11-18)
+
+The NuGet listing still shows only version `0.1.0`, last updated 2026-07-24, with approximately 11.3K downloads at the time of this review. It targets `netstandard2.1`, which is compatible with the Gauntlet `net10.0` core. The package declares `System.Text.Json >= 8.0.5` as a dependency. See the [NuGet package page](https://www.nuget.org/packages/MackySoft.Json.Canonicalization/0.1.0).
+
+That dependency floor is not sufficient as a Workshop security policy. The package audit must inspect the *resolved* dependency graph and pin the System.Text.Json implementation to the current supported .NET 10 servicing line when using this package. As of this review, NuGet lists `System.Text.Json 10.0.15` as the latest .NET 10 servicing package, published 2026-11-10. The November 2026 CVE-2026-120796 advisory applies to .NET 11 preview/runtime deliveries and standalone System.Text.Json 11 prereleases, fixed in 11.0.0; it does not list the .NET 10.0.15 line as affected. See the [System.Text.Json 10.0.15 package page](https://www.nuget.org/packages/System.Text.Json/10.0.15) and [Microsoft's November 2026 advisory](https://github.com/dotnet/runtime/security/advisories/GHSA-cpw3-h88j-9f6x).
+
+The package's declared `8.0.5` floor is the patched version for the older CVE-2024-43485 issue, but it remains an old dependency baseline and should not be allowed to win resolution by accident. The production gate therefore requires an explicit current dependency policy, lock/restore evidence, and a clean vulnerability audit. The .NET 10 runtime itself supplies System.Text.Json, but the package dependency graph still needs to be inspected rather than assumed.
+
+The package page confirms the source repository, the pinned RFC-author source lineage, and included Apache-2.0/MPL-2.0 notices. RFC 8785 Appendix G independently lists the `cyberphone/json-canonicalization` .NET/C# implementation as verified compatible with JCS. The MackySoft package is therefore still the most convenient integration candidate, while the RFC authors' implementation remains the stronger provenance fallback if the package's dependency or maintenance profile is unacceptable.
+
+These are research findings, not package acceptance. No package reference has been added.
+
 ## Integration constraints
 
 If the package passes the independent integration spike:
