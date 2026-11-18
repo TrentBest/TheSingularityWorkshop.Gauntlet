@@ -10,6 +10,48 @@ public sealed class Rfc8785IntegrationTests
 {
     private const string DomainSeparator = "TheSingularityWorkshop.Gauntlet.HostExecutionReceipt.v1\n";
 
+    public static TheoryData<ulong, string> AppendixBFiniteNumberVectors => new()
+    {
+        { 0x0000000000000000UL, "0" },
+        { 0x0000000000000001UL, "5e-324" },
+        { 0x8000000000000001UL, "-5e-324" },
+        { 0x7fefffffffffffffUL, "1.7976931348623157e+308" },
+        { 0xffefffffffffffffUL, "-1.7976931348623157e+308" },
+        { 0x4340000000000000UL, "9007199254740992" },
+        { 0xc340000000000000UL, "-9007199254740992" },
+        { 0x4430000000000000UL, "295147905179352830000" },
+        { 0x44b52d02c7e14af5UL, "9.999999999999997e+22" },
+        { 0x44b52d02c7e14af6UL, "1e+23" },
+        { 0x44b52d02c7e14af7UL, "1.0000000000000001e+23" },
+        { 0x444b1ae4d6e2ef4eUL, "999999999999999700000" },
+        { 0x444b1ae4d6e2ef4fUL, "999999999999999900000" },
+        { 0x444b1ae4d6e2ef50UL, "1e+21" },
+        { 0x3eb0c6f7a0b5ed8cUL, "9.999999999999997e-7" },
+        { 0x3eb0c6f7a0b5ed8dUL, "0.000001" },
+        { 0x41b3de4355555553UL, "333333333.3333332" },
+        { 0x41b3de4355555554UL, "333333333.33333325" },
+        { 0x41b3de4355555555UL, "333333333.3333333" },
+        { 0x41b3de4355555556UL, "333333333.3333334" },
+        { 0x41b3de4355555557UL, "333333333.33333343" },
+        { 0xbecbf647612f3696UL, "-0.0000033333333333333333" },
+        { 0x43143ff3c1cb0959UL, "1424953923781206.2" }
+    };
+
+    [Theory]
+    [MemberData(nameof(AppendixBFiniteNumberVectors))]
+    public void Canonicalizer_matches_rfc8785_appendix_b_binary64_vectors(ulong ieee754Bits, string expected)
+    {
+        double value = BitConverter.Int64BitsToDouble(unchecked((long)ieee754Bits));
+        byte[] input = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value));
+        byte[] expectedBytes = Encoding.UTF8.GetBytes(expected);
+
+        Assert.Equal(expectedBytes, Rfc8785JsonCanonicalizer.Canonicalize(input));
+
+        using JsonDocument document = JsonDocument.Parse(input);
+        Assert.Equal(expectedBytes, Rfc8785JsonCanonicalizer.Canonicalize(document.RootElement));
+    }
+
+
     [Fact]
     public void Canonicalizer_sorts_properties_and_normalizes_primitive_representations()
     {
