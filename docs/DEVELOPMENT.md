@@ -16,6 +16,7 @@ git clone --branch development https://github.com/TrentBest/TheSingularityWorksh
 cd TheSingularityWorkshop.Gauntlet
 dotnet build samples/GauntletBadge/GauntletBadge.csproj --configuration Release
 dotnet test tests/Gauntlet.Core.Tests/Gauntlet.Core.Tests.csproj --configuration Release
+dotnet test tests/Gauntlet.Jcs.Tests/Gauntlet.Jcs.Tests.csproj --configuration Release
 ~~~
 
 Render a preview state:
@@ -26,6 +27,8 @@ dotnet run --project samples/GauntletBadge/GauntletBadge.csproj --configuration 
 dotnet run --project samples/GauntletBadge/GauntletBadge.csproj --configuration Release -- --state passed --candidate-sha preview --run-id passed-fixture --score 98 --average 84 --delta 14 --survived 5 --failed 2 --output artifacts/gauntlet-passed.svg
 dotnet run --project samples/GauntletBadge/GauntletBadge.csproj --configuration Release -- --state blocked --candidate-sha preview --run-id blocked-fixture --output artifacts/gauntlet-blocked.svg
 ~~~
+
+The JCS project is an isolated, test-only RFC 8785 qualification spike. It pins the canonicalizer candidate and the System.Text.Json dependency graph for repeatable CI verification; neither package is added to the shipping Gauntlet.Core project. Run it locally with the command above. See [the JCS assessment](JCS_IMPLEMENTATION_ASSESSMENT.md) and [receipt wire contract](RECEIPT_WIRE_V1.md).
 
 The GitHub Actions badge workflow checks out both repositories, records their exact commit SHAs, builds the same generator, renders all four fixtures, and validates the resulting SVG documents.
 
