@@ -107,6 +107,12 @@
       },
       "gauntlet.core": {
         "type": "Project"
+      },
+      "gauntlet.security": {
+        "type": "Project",
+        "dependencies": {
+          "Gauntlet.Core": "[1.0.0, )"
+        }
       }
     }
   }
