@@ -381,6 +381,8 @@ public static class HostReceiptJsonV1
             throw new JsonException("Unsupported host receipt schema version.");
         if (receipt.Candidate is null || receipt.EffectiveControls is null)
             throw new JsonException("Receipt candidate and effectiveControls are required.");
+        if (receipt.StartedAt.Offset != TimeSpan.Zero || receipt.CompletedAt.Offset != TimeSpan.Zero)
+            throw new JsonException("Receipt timestamps must use the UTC offset.");
         if (!IsDefined<HostExecutionOutcome>(receipt.Outcome) ||
             !IsDefined<HostTerminalReason>(receipt.TerminalReason) ||
             !IsDefined<HostNetworkPolicy>(receipt.NetworkPolicy))
