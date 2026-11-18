@@ -170,9 +170,11 @@ public sealed class HostReceiptJsonV1Tests
     public void Invalid_utf8_is_rejected()
     {
         var valid = Json();
-        var invalid = new byte[valid.Length + 1];
-        valid.CopyTo(invalid, 0);
-        invalid[^1] = 0xFF;
+        var marker = Encoding.UTF8.GetBytes("host-fixture-1");
+        var offset = valid.AsSpan().IndexOf(marker);
+        Assert.True(offset >= 0);
+        var invalid = valid.ToArray();
+        invalid[offset] = 0xFF;
 
         Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(invalid));
     }
@@ -267,6 +269,14 @@ public sealed class HostReceiptJsonV1Tests
     {
         var atBoundary = Receipt with { InputArtifactBytes = 9_007_199_254_740_991L };
         Assert.Equal(atBoundary.InputArtifactBytes, HostReceiptJsonV1.Deserialize(Json(atBoundary)).InputArtifactBytes);
+    }
+
+    [Fact]
+    public void Signature_excluded_projection_is_also_byte_bounded()
+    {
+        var oversized = Receipt with { HostIdentity = new string('\u0001', HostReceiptJsonV1.MaximumReceiptBytes / 2) };
+
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.SerializeSignatureExcluded(oversized));
     }
 
 }
