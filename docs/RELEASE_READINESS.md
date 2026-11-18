@@ -12,7 +12,7 @@
 
 ## Current readiness snapshot — 2026-11-18
 
-**Engineering progress:** The .NET 10 core, strict version-1 receipt JSON contract, bounded RFC 8785 signature-payload builder, ES256 verifier, and immutable process-local trust snapshot are implemented. The test-only JCS integration passes all six official RFC 8785 JSON vectors, all 23 Appendix B finite-number vectors, and the end-to-end ES256 verification path. Latest verified code evidence: 75 core/security tests and 46 JCS integration tests passed; dependency restore is locked to System.Text.Json 10.0.15; no vulnerable transitive packages were reported; badge and Sith workflows passed.
+**Engineering progress:** The .NET 10 core, strict version-1 receipt JSON contract, bounded RFC 8785 signature-payload builder, ES256 verifier, and immutable process-local trust snapshot are implemented. The test-only JCS integration passes all six official RFC 8785 JSON vectors, all 23 Appendix B finite-number vectors, and the end-to-end ES256 verification path. Latest verified code evidence: 75 core/security tests and 46 JCS integration tests passed; dependency restore is locked to System.Text.Json 10.0.15; no vulnerable transitive packages were reported; badge and Sith workflows passed. Repository topology is exactly `development` and `master`; `master` remains unchanged at `0dda74197b4f7fc3f547dc369737227beb6c22d2`.
 
 **Remaining release blockers:**
 
