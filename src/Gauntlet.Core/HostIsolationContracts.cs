@@ -80,14 +80,23 @@ public enum HostTerminalReason
 /// <summary>Terminal state attested by the isolation host.</summary>
 public enum HostExecutionOutcome
 {
+    /// <summary>The declared workload completed successfully.</summary>
     Completed,
+    /// <summary>The candidate workload returned a failure.</summary>
     CandidateFailed,
+    /// <summary>The host watchdog ended the attempt at its deadline.</summary>
     TimedOut,
+    /// <summary>The attempt was cancelled.</summary>
     Cancelled,
+    /// <summary>A host-enforced resource ceiling ended the attempt.</summary>
     ResourceLimited,
+    /// <summary>Host provisioning failed.</summary>
     ProvisioningFailed,
+    /// <summary>One or more isolation controls could not be verified.</summary>
     IsolationUnverified,
+    /// <summary>The complete workload process tree could not be terminated.</summary>
     TerminationFailed,
+    /// <summary>Host cleanup or residual-resource verification failed.</summary>
     CleanupFailed
 }
 
