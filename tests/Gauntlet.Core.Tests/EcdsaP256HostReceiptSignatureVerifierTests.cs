@@ -109,6 +109,30 @@ public sealed class EcdsaP256HostReceiptSignatureVerifierTests
     }
 
 
+
+    [Fact]
+    public void Trusted_key_copies_public_key_bytes_and_allowed_host_identities()
+    {
+        using var privateKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        byte[] publicKey = privateKey.ExportSubjectPublicKeyInfo();
+        var hosts = new List<string> { Host };
+        var entry = new HostReceiptTrustedKey(
+            KeyId,
+            Provider,
+            EcdsaP256HostReceiptSignatureVerifier.Algorithm,
+            hosts,
+            publicKey,
+            Now.AddMinutes(-1),
+            Now.AddMinutes(1),
+            false);
+
+        Array.Clear(publicKey);
+        hosts.Clear();
+
+        Assert.True(entry.AllowsHostIdentity(Host));
+        Assert.NotEmpty(entry.SubjectPublicKeyInfo.ToArray());
+    }
+
     [Fact]
     public void Immutable_trust_store_snapshots_entries_and_rejects_duplicate_key_ids()
     {
