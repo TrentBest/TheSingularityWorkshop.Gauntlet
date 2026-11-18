@@ -144,6 +144,7 @@ public interface IHostReceiptSignatureVerifier
     /// <param name="signingKeyId">The provider key identifier.</param>
     /// <param name="hostProvider">The attested host provider identity.</param>
     /// <param name="hostIdentity">The attested host/runner identity.</param>
+    /// <param name="verificationTime">The caller-supplied UTC instant used for key validity checks.</param>
     bool Verify(ReadOnlyMemory<byte> canonicalSignedPayload, string signature, string signingKeyId, string hostProvider, string hostIdentity, DateTimeOffset verificationTime);
 }
 
