@@ -10,6 +10,21 @@
 > [!IMPORTANT]
 > Completing this checklist does not authorize a merge, NuGet publication, GitHub release, deployment, or any other privileged action. The owner must review the exact release candidate and explicitly authorize publication. No automation, passing test, badge, score, or agent may infer that authorization.
 
+## Current readiness snapshot — 2026-11-18
+
+**Engineering progress:** The .NET 10 core, strict version-1 receipt JSON contract, bounded RFC 8785 signature-payload builder, ES256 verifier, and immutable process-local trust snapshot are implemented. The test-only JCS integration passes all six official RFC 8785 JSON vectors, all 23 Appendix B finite-number vectors, and the end-to-end ES256 verification path. Latest verified code evidence: 75 core/security tests and 46 JCS integration tests passed; dependency restore is locked to System.Text.Json 10.0.15; no vulnerable transitive packages were reported; badge and Sith workflows passed.
+
+**Remaining release blockers:**
+
+- The MackySoft canonicalizer remains test-only until shipped binary/source parity and full license/notice review are complete.
+- The immutable trust snapshot is not a production trust-store service; durable key distribution, audit, rotation/revocation operations, and replay persistence remain open.
+- No disposable VM/strong-isolation host adapter or OS-level adversarial qualification exists. Candidate-controlled code remains disabled.
+- CiAi's read-only evidence-provider integration and independent validation contract are not implemented.
+- First-release scope, public API/package metadata, SBOM, clean consumer install, package inspection, and exact-candidate release dossier remain open.
+- Final owner review and explicit publication authorization have not been requested or granted.
+
+This is deliberately **NOT READY**. Passing unit/integration tests and badges do not waive the open gates above.
+
 ## How to use this checklist
 
 - Keep this file on `development` as the working source of truth.
