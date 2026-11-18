@@ -77,7 +77,7 @@
 - [x] Enforce a 1 MiB raw receipt limit, UTF-8 JSON parsing, BOM rejection, strict JSON syntax, and depth limit before schema mapping.
 - [~] Reject duplicate decoded property names (including escaped aliases), malformed Unicode scalar strings, unknown fields, unsupported schema versions, unknown enum vocabulary, and malformed values without coercion. Expand independent I-JSON and canonicalizer edge-case vectors in the JCS spike.
 - [ ] Implement RFC 8785 JCS canonicalization using an audited implementation; complete dependency, source provenance, package hash, license, and advisory review before accepting any package.
-- [ ] Add independent positive/negative RFC 8785 vectors, including number edge cases, property ordering, duplicate names, Unicode, depth, and signature-excluded projection.
+- [ ] Add independent positive/negative RFC 8785 vectors, including number edge cases, property ordering, duplicate names, Unicode, depth, and signature-excluded projection. Wire DTO/parser unit tests cover basic shape, unknown fields, duplicate decoded names, malformed UTF-8, BOM, invalid Unicode, unknown schema/enum, bounded size, and signature-excluded projection; they are not RFC 8785 vectors.
 - [ ] Implement and review the exact signature payload: remove only top-level `signature`, retain `signingKeyId`, canonicalize, UTF-8 encode, prepend the documented domain separator.
 - [x] Keep the signature-verifier boundary byte-oriented: validation requires non-empty canonical signed bytes and passes them with signing key ID/provider/host identity context. This is an interface seam only; JCS byte production and cryptographic verification remain open.
 - [ ] Implement provider trust policy: key identity, algorithm allowlist, key validity, rotation, revocation, and provider binding. No self-asserted key trust.
@@ -154,7 +154,7 @@
 
 - [x] README describes purpose, boundaries, architecture, initial implementation, and safety caveats.
 - [x] README links directly to this living release checklist and displays the current not-ready state.
-- [x] Architecture, run contract, development, badge, autonomous pipeline, host isolation, host adapter, and JCS assessment documents exist.
+- [x] Architecture, run contract, development, badge, autonomous pipeline, host isolation, host adapter, JCS assessment, and [version-1 receipt wire contract](RECEIPT_WIRE_V1.md) documents exist.
 - [ ] Ensure README links to this checklist and clearly displays current release readiness state.
 - [ ] Document installation and a minimal consumer example for the actual first release surface.
 - [ ] Document how to define/version a profile and probe, execute an allowed campaign, inspect findings, and replay a regression.
