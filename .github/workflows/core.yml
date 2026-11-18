@@ -22,8 +22,8 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Restore JCS spike and generate dependency lock
-        run: dotnet restore tests/Gauntlet.Jcs.Tests/Gauntlet.Jcs.Tests.csproj --use-lock-file
+      - name: Restore JCS spike in locked mode
+        run: dotnet restore tests/Gauntlet.Jcs.Tests/Gauntlet.Jcs.Tests.csproj --locked-mode
 
       - name: Test deterministic campaign evaluator and strict receipt wire contract
         run: dotnet test tests/Gauntlet.Core.Tests/Gauntlet.Core.Tests.csproj --configuration Release
