@@ -266,6 +266,8 @@ public static class HostIsolationContractValidator
             string.IsNullOrWhiteSpace(receipt.SigningKeyId) ||
             string.IsNullOrWhiteSpace(receipt.Signature))
             errors.Add("Host provenance, runner image/platform, adapter version, and signature metadata are required.");
+        if (!HostReceiptJsonV1.TryDecodeSignature(receipt.Signature, out _))
+            errors.Add("Receipt signature is not a valid version-1 ES256 base64url value.");
         if (receipt.NetworkPolicy != HostNetworkPolicy.DenyAll || !receipt.NetworkEgressDeniedObserved)
             errors.Add("The receipt must attest the deny-all network policy and observed egress denial.");
         if (!IsSha256(receipt.InputArtifactDigest) ||
