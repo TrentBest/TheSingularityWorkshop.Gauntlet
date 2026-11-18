@@ -8,7 +8,6 @@ namespace TheSingularityWorkshop.Gauntlet.Jcs.Tests;
 
 public sealed class Rfc8785IntegrationTests
 {
-    private const string DomainSeparator = "TheSingularityWorkshop.Gauntlet.HostExecutionReceipt.v1\n";
 
     public static TheoryData<string, string> OfficialRfc8785Vectors => new()
     {
@@ -186,10 +185,11 @@ public sealed class Rfc8785IntegrationTests
         byte[] wireJson = JsonSerializer.SerializeToUtf8Bytes(Receipt);
         HostExecutionReceiptV1 receipt = HostReceiptJsonV1.Deserialize(wireJson);
 
-        byte[] signatureExcludedJson = HostReceiptJsonV1.SerializeSignatureExcluded(receipt);
-        byte[] canonicalJson = Rfc8785JsonCanonicalizer.Canonicalize(signatureExcludedJson);
-        byte[] domainBytes = Encoding.UTF8.GetBytes(DomainSeparator);
-        byte[] signedPayload = [.. domainBytes, .. canonicalJson];
+        byte[] signedPayload = HostReceiptSignaturePayloadBuilder.Build(
+            receipt,
+            new MackySoftReceiptCanonicalizer());
+        byte[] domainBytes = Encoding.UTF8.GetBytes(HostReceiptSignaturePayloadBuilder.DomainSeparator);
+        byte[] canonicalJson = signedPayload[domainBytes.Length..];
 
         using JsonDocument wireDocument = JsonDocument.Parse(wireJson);
         using JsonDocument canonicalDocument = JsonDocument.Parse(canonicalJson);
@@ -202,6 +202,30 @@ public sealed class Rfc8785IntegrationTests
         Assert.Equal(
             canonicalJson,
             signedPayload[domainBytes.Length..]);
+    }
+
+
+    [Fact]
+    public void Signature_payload_builder_rejects_empty_and_oversized_canonicalizer_output()
+    {
+        Assert.Throws<JsonException>(() => HostReceiptSignaturePayloadBuilder.Build(
+            Receipt,
+            new FixedReceiptCanonicalizer([])));
+
+        Assert.Throws<JsonException>(() => HostReceiptSignaturePayloadBuilder.Build(
+            Receipt,
+            new FixedReceiptCanonicalizer(new byte[HostReceiptJsonV1.MaximumReceiptBytes])));
+    }
+
+    private sealed class MackySoftReceiptCanonicalizer : IHostReceiptCanonicalizer
+    {
+        public byte[] Canonicalize(ReadOnlySpan<byte> utf8Json) =>
+            Rfc8785JsonCanonicalizer.Canonicalize(utf8Json);
+    }
+
+    private sealed class FixedReceiptCanonicalizer(byte[] result) : IHostReceiptCanonicalizer
+    {
+        public byte[] Canonicalize(ReadOnlySpan<byte> utf8Json) => result;
     }
 
     private static HostReceiptControlEvidenceV1 Evidence => new()
