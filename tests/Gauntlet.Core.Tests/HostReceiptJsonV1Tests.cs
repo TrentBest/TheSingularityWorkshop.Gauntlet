@@ -279,4 +279,18 @@ public sealed class HostReceiptJsonV1Tests
         Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.SerializeSignatureExcluded(oversized));
     }
 
+    [Fact]
+    public void Signature_encoding_requires_canonical_unpadded_base64url_of_64_bytes()
+    {
+        Assert.True(HostReceiptJsonV1.TryDecodeSignature(new string('A', 86), out var decoded));
+        Assert.Equal(64, decoded.Length);
+
+        Assert.False(HostReceiptJsonV1.TryDecodeSignature(new string('A', 85), out _));
+        Assert.False(HostReceiptJsonV1.TryDecodeSignature(new string('A', 84) + "==", out _));
+        Assert.False(HostReceiptJsonV1.TryDecodeSignature(new string('A', 85) + "B", out _));
+
+        var malformed = Receipt with { Signature = "not-a-signature" };
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(Json(malformed)));
+    }
+
 }
