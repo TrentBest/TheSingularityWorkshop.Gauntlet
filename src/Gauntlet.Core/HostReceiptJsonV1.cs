@@ -9,165 +9,314 @@ namespace TheSingularityWorkshop.Gauntlet;
 /// This type is deliberately separate from the domain receipt record.
 /// </summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed class HostExecutionReceiptV1
+/// <summary>Version-1 receipt wire DTO with fixed JSON field names.</summary>
+public sealed record HostExecutionReceiptV1
 {
+    /// <summary>Gets the Schema Version wire value.</summary>
+
     [JsonPropertyName("schemaVersion")]
     public required int SchemaVersion { get; init; }
+
+    /// <summary>Gets the Receipt Id wire value.</summary>
+
 
     [JsonPropertyName("receiptId")]
     public required string ReceiptId { get; init; }
 
+    /// <summary>Gets the Request Id wire value.</summary>
+
+
     [JsonPropertyName("requestId")]
     public required string RequestId { get; init; }
+
+    /// <summary>Gets the Candidate wire value.</summary>
+
 
     [JsonPropertyName("candidate")]
     public required HostReceiptCandidateV1 Candidate { get; init; }
 
+    /// <summary>Gets the Profile Id wire value.</summary>
+
+
     [JsonPropertyName("profileId")]
     public required string ProfileId { get; init; }
+
+    /// <summary>Gets the Profile Version wire value.</summary>
+
 
     [JsonPropertyName("profileVersion")]
     public required int ProfileVersion { get; init; }
 
+    /// <summary>Gets the Profile Digest wire value.</summary>
+
+
     [JsonPropertyName("profileDigest")]
     public required string ProfileDigest { get; init; }
+
+    /// <summary>Gets the Run Id wire value.</summary>
+
 
     [JsonPropertyName("runId")]
     public required string RunId { get; init; }
 
+    /// <summary>Gets the Attempt wire value.</summary>
+
+
     [JsonPropertyName("attempt")]
     public required int Attempt { get; init; }
+
+    /// <summary>Gets the Started At wire value.</summary>
+
 
     [JsonPropertyName("startedAt")]
     public required DateTimeOffset StartedAt { get; init; }
 
+    /// <summary>Gets the Completed At wire value.</summary>
+
+
     [JsonPropertyName("completedAt")]
     public required DateTimeOffset CompletedAt { get; init; }
+
+    /// <summary>Gets the Outcome wire value.</summary>
+
 
     [JsonPropertyName("outcome")]
     public required string Outcome { get; init; }
 
+    /// <summary>Gets the Terminal Reason wire value.</summary>
+
+
     [JsonPropertyName("terminalReason")]
     public required string TerminalReason { get; init; }
+
+    /// <summary>Gets the Host Runner Image wire value.</summary>
+
 
     [JsonPropertyName("hostRunnerImage")]
     public required string HostRunnerImage { get; init; }
 
+    /// <summary>Gets the Host Platform wire value.</summary>
+
+
     [JsonPropertyName("hostPlatform")]
     public required string HostPlatform { get; init; }
+
+    /// <summary>Gets the Isolation Adapter Version wire value.</summary>
+
 
     [JsonPropertyName("isolationAdapterVersion")]
     public required string IsolationAdapterVersion { get; init; }
 
+    /// <summary>Gets the Network Policy wire value.</summary>
+
+
     [JsonPropertyName("networkPolicy")]
     public required string NetworkPolicy { get; init; }
+
+    /// <summary>Gets the Network Egress Denied Observed wire value.</summary>
+
 
     [JsonPropertyName("networkEgressDeniedObserved")]
     public required bool NetworkEgressDeniedObserved { get; init; }
 
+    /// <summary>Gets the Input Artifact Digest wire value.</summary>
+
+
     [JsonPropertyName("inputArtifactDigest")]
     public required string InputArtifactDigest { get; init; }
+
+    /// <summary>Gets the Input Artifact Bytes wire value.</summary>
+
 
     [JsonPropertyName("inputArtifactBytes")]
     public required long InputArtifactBytes { get; init; }
 
+    /// <summary>Gets the Input Artifact Count wire value.</summary>
+
+
     [JsonPropertyName("inputArtifactCount")]
     public required int InputArtifactCount { get; init; }
+
+    /// <summary>Gets the Output Artifact Digest wire value.</summary>
+
 
     [JsonPropertyName("outputArtifactDigest")]
     public required string? OutputArtifactDigest { get; init; }
 
+    /// <summary>Gets the Output Artifact Bytes wire value.</summary>
+
+
     [JsonPropertyName("outputArtifactBytes")]
     public required long OutputArtifactBytes { get; init; }
+
+    /// <summary>Gets the Output Artifact Count wire value.</summary>
+
 
     [JsonPropertyName("outputArtifactCount")]
     public required int OutputArtifactCount { get; init; }
 
+    /// <summary>Gets the Effective Controls wire value.</summary>
+
+
     [JsonPropertyName("effectiveControls")]
     public required HostReceiptEffectiveControlsV1 EffectiveControls { get; init; }
+
+    /// <summary>Gets the Process Tree Terminated wire value.</summary>
+
 
     [JsonPropertyName("processTreeTerminated")]
     public required bool ProcessTreeTerminated { get; init; }
 
+    /// <summary>Gets the Cleanup Succeeded wire value.</summary>
+
+
     [JsonPropertyName("cleanupSucceeded")]
     public required bool CleanupSucceeded { get; init; }
+
+    /// <summary>Gets the Residual Resources Clear wire value.</summary>
+
 
     [JsonPropertyName("residualResourcesClear")]
     public required bool ResidualResourcesClear { get; init; }
 
+    /// <summary>Gets the Host Provider wire value.</summary>
+
+
     [JsonPropertyName("hostProvider")]
     public required string HostProvider { get; init; }
+
+    /// <summary>Gets the Host Identity wire value.</summary>
+
 
     [JsonPropertyName("hostIdentity")]
     public required string HostIdentity { get; init; }
 
+    /// <summary>Gets the Signing Key Id wire value.</summary>
+
+
     [JsonPropertyName("signingKeyId")]
     public required string SigningKeyId { get; init; }
+
+    /// <summary>Gets the Signature wire value.</summary>
+
 
     [JsonPropertyName("signature")]
     public required string Signature { get; init; }
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+/// <summary>Candidate source and artifact identity in the receipt wire schema.</summary>
 public sealed class HostReceiptCandidateV1
 {
+    /// <summary>Gets the Repository wire value.</summary>
+
     [JsonPropertyName("repository")]
     public required string Repository { get; init; }
+
+    /// <summary>Gets the Commit Sha wire value.</summary>
+
 
     [JsonPropertyName("commitSha")]
     public required string CommitSha { get; init; }
 
+    /// <summary>Gets the Artifact Digest wire value.</summary>
+
+
     [JsonPropertyName("artifactDigest")]
     public required string ArtifactDigest { get; init; }
+
+    /// <summary>Gets the Manifest Digest wire value.</summary>
+
 
     [JsonPropertyName("manifestDigest")]
     public required string? ManifestDigest { get; init; }
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+/// <summary>All required host isolation control observations in the receipt wire schema.</summary>
 public sealed class HostReceiptEffectiveControlsV1
 {
+    /// <summary>Gets the No Credentials wire value.</summary>
+
     [JsonPropertyName("noCredentials")]
     public required HostReceiptControlEvidenceV1 NoCredentials { get; init; }
+    /// <summary>Gets the No Host Mounts wire value.</summary>
+
     [JsonPropertyName("noHostMounts")]
     public required HostReceiptControlEvidenceV1 NoHostMounts { get; init; }
+    /// <summary>Gets the Metadata Blocked wire value.</summary>
+
     [JsonPropertyName("metadataBlocked")]
     public required HostReceiptControlEvidenceV1 MetadataBlocked { get; init; }
+    /// <summary>Gets the Network Egress Denied wire value.</summary>
+
     [JsonPropertyName("networkEgressDenied")]
     public required HostReceiptControlEvidenceV1 NetworkEgressDenied { get; init; }
+    /// <summary>Gets the Read Only Candidate Input wire value.</summary>
+
     [JsonPropertyName("readOnlyCandidateInput")]
     public required HostReceiptControlEvidenceV1 ReadOnlyCandidateInput { get; init; }
+    /// <summary>Gets the Bounded Scratch wire value.</summary>
+
     [JsonPropertyName("boundedScratch")]
     public required HostReceiptControlEvidenceV1 BoundedScratch { get; init; }
+    /// <summary>Gets the Wall Clock Limit wire value.</summary>
+
     [JsonPropertyName("wallClockLimit")]
     public required HostReceiptControlEvidenceV1 WallClockLimit { get; init; }
+    /// <summary>Gets the Cpu Limit wire value.</summary>
+
     [JsonPropertyName("cpuLimit")]
     public required HostReceiptControlEvidenceV1 CpuLimit { get; init; }
+    /// <summary>Gets the Memory Limit wire value.</summary>
+
     [JsonPropertyName("memoryLimit")]
     public required HostReceiptControlEvidenceV1 MemoryLimit { get; init; }
+    /// <summary>Gets the Process Limit wire value.</summary>
+
     [JsonPropertyName("processLimit")]
     public required HostReceiptControlEvidenceV1 ProcessLimit { get; init; }
+    /// <summary>Gets the Disk Limit wire value.</summary>
+
     [JsonPropertyName("diskLimit")]
     public required HostReceiptControlEvidenceV1 DiskLimit { get; init; }
+    /// <summary>Gets the Output Limit wire value.</summary>
+
     [JsonPropertyName("outputLimit")]
     public required HostReceiptControlEvidenceV1 OutputLimit { get; init; }
+    /// <summary>Gets the Artifact Limit wire value.</summary>
+
     [JsonPropertyName("artifactLimit")]
     public required HostReceiptControlEvidenceV1 ArtifactLimit { get; init; }
+    /// <summary>Gets the Artifact Count Limit wire value.</summary>
+
     [JsonPropertyName("artifactCountLimit")]
     public required HostReceiptControlEvidenceV1 ArtifactCountLimit { get; init; }
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+/// <summary>Configured and independently observed evidence for one host control.</summary>
 public sealed class HostReceiptControlEvidenceV1
 {
+    /// <summary>Gets the Configured wire value.</summary>
+
     [JsonPropertyName("configured")]
     public required bool Configured { get; init; }
+
+    /// <summary>Gets the Observed Enforced wire value.</summary>
+
 
     [JsonPropertyName("observedEnforced")]
     public required bool ObservedEnforced { get; init; }
 
+    /// <summary>Gets the Configured Limit wire value.</summary>
+
+
     [JsonPropertyName("configuredLimit")]
     public required long? ConfiguredLimit { get; init; }
+
+    /// <summary>Gets the Observed Limit wire value.</summary>
+
 
     [JsonPropertyName("observedLimit")]
     public required long? ObservedLimit { get; init; }
