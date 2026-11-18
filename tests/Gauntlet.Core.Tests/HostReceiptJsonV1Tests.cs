@@ -176,4 +176,22 @@ public sealed class HostReceiptJsonV1Tests
 
         Assert.Throws<JsonException>(() => HostReceiptJsonV1.Deserialize(invalid));
     }
+    [Fact]
+    public void Bom_and_unpaired_surrogate_are_rejected()
+    {
+        var valid = Json();
+        var withBom = new byte[valid.Length + 3];
+        withBom[0] = 0xEF;
+        withBom[1] = 0xBB;
+        withBom[2] = 0xBF;
+        valid.CopyTo(withBom, 3);
+        Assert.Throws<JsonException>(() => HostReceiptJsonV1.Deserialize(withBom));
+
+        var invalidUnicode = Encoding.UTF8.GetString(valid).Replace(
+            "\"hostIdentity\":\"host-fixture-1\"",
+            "\"hostIdentity\":\"\\uD800\"",
+            StringComparison.Ordinal);
+        Assert.Throws<JsonException>(() => HostReceiptJsonV1.Deserialize(Encoding.UTF8.GetBytes(invalidUnicode)));
+    }
+
 }
