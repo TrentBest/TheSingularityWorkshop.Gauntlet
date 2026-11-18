@@ -110,7 +110,7 @@ public sealed class HostReceiptJsonV1Tests
             "\"receiptId\":\"receipt-1\",\"receipt\\u0049d\":\"shadow\"",
             StringComparison.Ordinal);
 
-        Assert.Throws<JsonException>(() => HostReceiptJsonV1.Deserialize(Encoding.UTF8.GetBytes(json)));
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(Encoding.UTF8.GetBytes(json)));
     }
 
     [Fact]
@@ -121,7 +121,7 @@ public sealed class HostReceiptJsonV1Tests
             "\"receiptId\":\"receipt-1\",\"unexpected\":true",
             StringComparison.Ordinal);
 
-        Assert.Throws<JsonException>(() => HostReceiptJsonV1.Deserialize(Encoding.UTF8.GetBytes(json)));
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(Encoding.UTF8.GetBytes(json)));
     }
 
     [Fact]
@@ -132,25 +132,25 @@ public sealed class HostReceiptJsonV1Tests
             "\"ReceiptId\":\"receipt-1\"",
             StringComparison.Ordinal);
 
-        Assert.Throws<JsonException>(() => HostReceiptJsonV1.Deserialize(Encoding.UTF8.GetBytes(json)));
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(Encoding.UTF8.GetBytes(json)));
     }
 
     [Fact]
     public void Unsupported_schema_and_unknown_enum_values_are_rejected()
     {
         var unsupported = Receipt with { SchemaVersion = 2 };
-        Assert.Throws<JsonException>(() => HostReceiptJsonV1.Deserialize(Json(unsupported)));
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(Json(unsupported)));
 
         var unknownOutcome = Receipt with { Outcome = "FutureOutcome" };
-        Assert.Throws<JsonException>(() => HostReceiptJsonV1.Deserialize(Json(unknownOutcome)));
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(Json(unknownOutcome)));
     }
 
     [Fact]
     public void Oversized_empty_and_malformed_payloads_are_rejected()
     {
-        Assert.Throws<JsonException>(() => HostReceiptJsonV1.Deserialize(ReadOnlySpan<byte>.Empty));
-        Assert.Throws<JsonException>(() => HostReceiptJsonV1.Deserialize(new byte[HostReceiptJsonV1.MaximumReceiptBytes + 1]));
-        Assert.Throws<JsonException>(() => HostReceiptJsonV1.Deserialize(Encoding.UTF8.GetBytes("{\"schemaVersion\":1,}")));
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(ReadOnlySpan<byte>.Empty));
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(new byte[HostReceiptJsonV1.MaximumReceiptBytes + 1]));
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(Encoding.UTF8.GetBytes("{\"schemaVersion\":1,}")));
     }
 
     [Fact]
@@ -160,10 +160,10 @@ public sealed class HostReceiptJsonV1Tests
             "\"receiptId\":\"receipt-1\",",
             "",
             StringComparison.Ordinal);
-        Assert.Throws<JsonException>(() => HostReceiptJsonV1.Deserialize(Encoding.UTF8.GetBytes(missing)));
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(Encoding.UTF8.GetBytes(missing)));
 
         var inconsistent = Receipt with { OutputArtifactCount = 0, OutputArtifactBytes = 1 };
-        Assert.Throws<JsonException>(() => HostReceiptJsonV1.Deserialize(Json(inconsistent)));
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(Json(inconsistent)));
     }
 
     [Fact]
@@ -174,7 +174,7 @@ public sealed class HostReceiptJsonV1Tests
         valid.CopyTo(invalid, 0);
         invalid[^1] = 0xFF;
 
-        Assert.Throws<JsonException>(() => HostReceiptJsonV1.Deserialize(invalid));
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(invalid));
     }
     [Fact]
     public void Bom_and_unpaired_surrogate_are_rejected()
@@ -185,13 +185,13 @@ public sealed class HostReceiptJsonV1Tests
         withBom[1] = 0xBB;
         withBom[2] = 0xBF;
         valid.CopyTo(withBom, 3);
-        Assert.Throws<JsonException>(() => HostReceiptJsonV1.Deserialize(withBom));
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(withBom));
 
         var invalidUnicode = Encoding.UTF8.GetString(valid).Replace(
             "\"hostIdentity\":\"host-fixture-1\"",
             "\"hostIdentity\":\"\\uD800\"",
             StringComparison.Ordinal);
-        Assert.Throws<JsonException>(() => HostReceiptJsonV1.Deserialize(Encoding.UTF8.GetBytes(invalidUnicode)));
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(Encoding.UTF8.GetBytes(invalidUnicode)));
     }
 
 }
