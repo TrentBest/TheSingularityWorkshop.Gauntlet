@@ -194,4 +194,20 @@ public sealed class HostReceiptJsonV1Tests
         Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(Encoding.UTF8.GetBytes(invalidUnicode)));
     }
 
+    [Fact]
+    public void Unsafe_integer_values_malformed_digests_and_non_utc_times_are_rejected()
+    {
+        var unsafeInteger = Receipt with { InputArtifactBytes = 9_007_199_254_740_992L };
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(Json(unsafeInteger)));
+
+        var malformedDigest = Receipt with { ProfileDigest = "sha256:xyz" };
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(Json(malformedDigest)));
+
+        var nonUtc = Receipt with
+        {
+            StartedAt = DateTimeOffset.Parse("2026-11-15T05:00:00-07:00")
+        };
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(Json(nonUtc)));
+    }
+
 }
