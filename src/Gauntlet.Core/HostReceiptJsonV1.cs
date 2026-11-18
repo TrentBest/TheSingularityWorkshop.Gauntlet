@@ -140,6 +140,7 @@ public sealed record HostExecutionReceiptV1
     /// <summary>Gets the Output Artifact Digest wire value.</summary>
 
 
+    [JsonRequired]
     [JsonPropertyName("outputArtifactDigest")]
     public required string? OutputArtifactDigest { get; init; }
 
@@ -228,6 +229,7 @@ public sealed class HostReceiptCandidateV1
     /// <summary>Gets the Manifest Digest wire value.</summary>
 
 
+    [JsonRequired]
     [JsonPropertyName("manifestDigest")]
     public required string? ManifestDigest { get; init; }
 }
@@ -312,12 +314,14 @@ public sealed class HostReceiptControlEvidenceV1
     /// <summary>Gets the Configured Limit wire value.</summary>
 
 
+    [JsonRequired]
     [JsonPropertyName("configuredLimit")]
     public required long? ConfiguredLimit { get; init; }
 
     /// <summary>Gets the Observed Limit wire value.</summary>
 
 
+    [JsonRequired]
     [JsonPropertyName("observedLimit")]
     public required long? ObservedLimit { get; init; }
 }
