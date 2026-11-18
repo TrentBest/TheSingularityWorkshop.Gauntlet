@@ -4,6 +4,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <!-- Intentional override: the canonicalizer requests System.Text.Json >= 8.0.5; pin the resolved graph to the supported .NET 10 servicing version. NU1510 is suppressed because .NET 10 also supplies this assembly from its shared framework. -->
     <NoWarn>$(NoWarn);NU1510</NoWarn>
   </PropertyGroup>
