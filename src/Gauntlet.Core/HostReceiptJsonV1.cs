@@ -198,6 +198,9 @@ public static class HostReceiptJsonV1
         if (utf8Json.IsEmpty || utf8Json.Length > MaximumReceiptBytes)
             throw new JsonException("Receipt payload is empty or exceeds the maximum byte length.");
 
+        if (utf8Json.Length >= 3 && utf8Json[0] == 0xEF && utf8Json[1] == 0xBB && utf8Json[2] == 0xBF)
+            throw new JsonException("Receipt JSON must be UTF-8 without a byte-order mark.");
+
         RejectDuplicatePropertyNames(utf8Json);
 
         var receipt = JsonSerializer.Deserialize<HostExecutionReceiptV1>(utf8Json, SerializerOptions)
@@ -307,13 +310,35 @@ public static class HostReceiptJsonV1
                     if (objectProperties.Count == 0)
                         throw new JsonException("JSON property appears outside an object.");
                     var name = reader.GetString() ?? throw new JsonException("JSON property name is invalid.");
+                    ValidateUnicodeScalars(name);
                     if (!objectProperties.Peek().Add(name))
                         throw new JsonException($"Duplicate JSON property name '{name}'.");
+                    break;
+                case JsonTokenType.String:
+                    ValidateUnicodeScalars(reader.GetString() ?? throw new JsonException("JSON string value is invalid."));
                     break;
             }
         }
 
         if (objectProperties.Count != 0)
             throw new JsonException("JSON object was not completely closed.");
+    }
+
+    private static void ValidateUnicodeScalars(string value)
+    {
+        for (var index = 0; index < value.Length; index++)
+        {
+            var current = value[index];
+            if (char.IsHighSurrogate(current))
+            {
+                if (index + 1 >= value.Length || !char.IsLowSurrogate(value[index + 1]))
+                    throw new JsonException("JSON strings must contain valid Unicode scalar values.");
+                index++;
+            }
+            else if (char.IsLowSurrogate(current))
+            {
+                throw new JsonException("JSON strings must contain valid Unicode scalar values.");
+            }
+        }
     }
 }
