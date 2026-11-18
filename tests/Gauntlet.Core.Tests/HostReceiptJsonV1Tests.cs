@@ -249,7 +249,7 @@ public sealed class HostReceiptJsonV1Tests
     public void Missing_explicitly_nullable_required_property_and_excessive_depth_are_rejected()
     {
         var missingNullable = Encoding.UTF8.GetString(Json()).Replace(
-            "\"manifestDigest\":null,",
+            "\"manifestDigest\":null",
             "",
             StringComparison.Ordinal);
         Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(Encoding.UTF8.GetBytes(missingNullable)));
