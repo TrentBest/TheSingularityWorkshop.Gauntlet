@@ -35,7 +35,7 @@ The validator passes its explicit `now` value to the verifier. Verification must
 - UTC `NotBeforeUtc` and `NotAfterUtc` instants
 - Revocation state
 
-The current `IHostReceiptTrustStore` is an interface only. A concrete store, durable audit, authenticated distribution, key rotation/revocation operations, and provider identity onboarding remain outstanding. The trust store must be outside the candidate-controlled execution environment and controlled by the host/operator.
+The `ImmutableHostReceiptTrustStore` provides a concrete process-local snapshot with duplicate-key rejection. It is intentionally not a persistence or distribution system. Durable audit, authenticated key distribution, atomic production refresh, key rotation/revocation operations, and provider identity onboarding remain outstanding. The trust store must be outside the candidate-controlled execution environment and controlled by the host/operator.
 
 ## Key lifecycle and operational boundaries
 
@@ -60,7 +60,7 @@ Implemented in source:
 
 Not implemented:
 
-- A concrete trust store or key-distribution mechanism.
+- A durable, authenticated trust-store persistence/distribution mechanism and provider key lifecycle control plane.
 - Provider signing service or private-key management.
 - Provider onboarding, rotation/revocation control plane, or audit persistence.
 - A production-approved canonicalizer dependency; the MackySoft candidate remains isolated to test-only qualification.
