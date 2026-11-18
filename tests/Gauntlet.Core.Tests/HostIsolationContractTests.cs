@@ -37,7 +37,7 @@ public sealed class HostIsolationContractTests
 
     private sealed class AcceptSignature : IHostReceiptSignatureVerifier
     {
-        public bool Verify(ReadOnlyMemory<byte> canonicalSignedPayload, string signature, string signingKeyId, string hostProvider, string hostIdentity) => !canonicalSignedPayload.IsEmpty && signature == "test-signature" && signingKeyId == "test-key-1" && hostProvider == "fixture-provider" && hostIdentity == "host-fixture-1";
+        public bool Verify(ReadOnlyMemory<byte> canonicalSignedPayload, string signature, string signingKeyId, string hostProvider, string hostIdentity) => !canonicalSignedPayload.IsEmpty && signature == "signed-payload" && signingKeyId == "test-key-1" && hostProvider == "fixture-provider" && hostIdentity == "host-fixture-1";
     }
 
     private sealed class RejectSignature : IHostReceiptSignatureVerifier
