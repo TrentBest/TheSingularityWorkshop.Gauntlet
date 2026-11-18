@@ -139,7 +139,7 @@ public sealed record HostExecutionReceipt(
 public interface IHostReceiptSignatureVerifier
 {
     /// <summary>Returns true only when the signature is valid for the exact canonical receipt and trusted key.</summary>
-    bool Verify(ReadOnlyMemory<byte> canonicalSignedPayload, string signingKeyId, string hostProvider, string hostIdentity);
+    bool Verify(ReadOnlyMemory<byte> canonicalSignedPayload, string signature, string signingKeyId, string hostProvider, string hostIdentity);
 }
 
 /// <summary>Atomically rejects receipt identifiers that have already been accepted.</summary>
@@ -295,7 +295,7 @@ public static class HostIsolationContractValidator
         {
             try
             {
-                if (!signatureVerifier.Verify(canonicalSignedPayload, receipt.SigningKeyId, receipt.HostProvider, receipt.HostIdentity))
+                if (!signatureVerifier.Verify(canonicalSignedPayload, receipt.Signature, receipt.SigningKeyId, receipt.HostProvider, receipt.HostIdentity))
                     errors.Add("Receipt signature is invalid or its signing key is not trusted.");
             }
             catch
