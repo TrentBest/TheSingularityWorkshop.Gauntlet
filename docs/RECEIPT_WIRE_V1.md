@@ -116,12 +116,13 @@ The signature input is not produced by serializing the domain record. The proces
 2. Create a JSON object from the validated DTO.
 3. Remove only the top-level `signature` property.
 4. Retain `signingKeyId` and every other version-1 field.
-5. Pass this JSON object to the separately reviewed RFC 8785 JCS implementation.
-6. Prefix the resulting canonical UTF-8 bytes with the exact domain separator:
+5. `HostReceiptSignaturePayloadBuilder.Build` passes the projection to an injected `IHostReceiptCanonicalizer` implementation of RFC 8785 JCS.
+6. The builder prefixes the canonical UTF-8 bytes with the exact domain separator:
    `TheSingularityWorkshop.Gauntlet.HostExecutionReceipt.v1\\n`.
-7. Supply those exact bytes and the key/provider/host identity context to the injected verifier.
+7. The builder returns the domain-separated payload, bounded to 1 MiB total.
+8. `IHostReceiptSignatureVerifier.Verify` receives those exact bytes, the original `signature` string, `signingKeyId`, `hostProvider`, and `hostIdentity`.
 
-`SerializeSignatureExcluded` currently performs only steps 2–4 and returns ordinary JSON bytes for a future JCS canonicalizer. Its output is **not** canonical JSON and is **not** a signed message. No cryptographic verification or provider trust is implemented by this DTO/parser.
+`SerializeSignatureExcluded` performs steps 2–4 and returns ordinary JSON bytes for the canonicalizer. `HostReceiptSignaturePayloadBuilder` implements the complete byte-construction pipeline, but the production canonicalizer dependency is not yet accepted. The MackySoft implementation is currently used only by the isolated test project. Neither class implements cryptographic verification or provider trust.
 
 ## Required tests before the wire gate is considered complete
 
