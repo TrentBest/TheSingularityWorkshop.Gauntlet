@@ -148,7 +148,7 @@ This is deliberately **NOT READY**. Passing unit/integration tests and badges do
 - [x] Workflows use read-only permissions where feasible; badge workflow pins its checkout/setup/upload actions to immutable SHAs.
 - [x] Sith policy currently reports exactly `master` and `development`.
 - [ ] Run the complete Release build and test suite from a clean checkout of the exact release-candidate SHA. Core and tests are now targeting .NET 10; validate the full workflow after this migration.
-- [ ] Run all badge fixture generation and verification from a clean checkout; archive the exact generated artifacts. The badge workflow and sample now use .NET 10 only; rerun and verify this gate.
+- [x] Run all badge fixture generation and verification from a clean checkout; archive the exact generated artifacts. The .NET 10-only badge workflow builds, renders, verifies, and uploads all four SVG states.
 - [ ] Add explicit workflow for formatting/analyzers and fail on warnings selected by policy.
 - [ ] Add dependency vulnerability/advisory review and an automated dependency update policy.
 - [ ] Review all GitHub Actions permissions, event triggers, third-party actions, token scopes, artifact handling, and untrusted-input interpolation.
@@ -171,7 +171,7 @@ This is deliberately **NOT READY**. Passing unit/integration tests and badges do
 - [x] README describes purpose, boundaries, architecture, initial implementation, and safety caveats.
 - [x] README links directly to this living release checklist and displays the current not-ready state.
 - [x] Architecture, run contract, development, badge, autonomous pipeline, host isolation, host adapter, JCS assessment, [version-1 receipt wire contract](RECEIPT_WIRE_V1.md), and [ES256 host signature profile](HOST_SIGNATURE_PROFILE.md) documents exist.
-- [ ] Ensure README links to this checklist and clearly displays current release readiness state.
+- [x] Ensure README links to this checklist and clearly displays current release readiness state.
 - [ ] Document installation and a minimal consumer example for the actual first release surface.
 - [ ] Document how to define/version a profile and probe, execute an allowed campaign, inspect findings, and replay a regression.
 - [ ] Document all statuses and terminal outcomes, including what is explicitly not a pass.
@@ -218,6 +218,7 @@ Add one row per material gate result. Prefer immutable commit SHAs and workflow 
 | 2026-11-18 | JCS warning cleanup | Added an explicit comment and narrow NU1510 suppression for the intentional System.Text.Json 10.0.15 dependency override; verified no NU1510 warning remains | `4144542f2bd17bdba54cbbdbb9b144d1ce8182e4` | [JCS test project](../tests/Gauntlet.Jcs.Tests/Gauntlet.Jcs.Tests.csproj) |
 | 2026-11-18 | Locked JCS dependencies | Generated and committed SHA-512 lock file for the test-only canonicalizer spike; CI restore now uses `--locked-mode` | `2d7542091d275e6aebc4103a58213533cfce0b5f` | [packages.lock.json](../tests/Gauntlet.Jcs.Tests/packages.lock.json); [workflow](../.github/workflows/core.yml) |
 | 2026-11-18 | Locked JCS CI verification | 65 core + 15 JCS tests passed; locked restore, dependency pin, vulnerability audit, badge workflow, and Sith policy all passed on the same SHA | `1b37806dda7cec2688d003474a51531acef0f8db` | [Core/JCS locked restore + audit](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/44207866710) · [Badge](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/44207866568) · [Sith](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/44207866745) |
+| 2026-11-18 | Official JCS vectors | 65 core + 44 JCS tests passed; all six official RFC 8785 JSON vectors and 23 Appendix B finite-number vectors pass | `9c7579efd04b74637def123f9b170c55215528c2` | [Core/JCS CI](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/44208233538) · [JCS assessment](JCS_IMPLEMENTATION_ASSESSMENT.md) |
 | 2026-11-18 | Strict wire and JCS qualification | 65 core tests + 15 JCS tests passed; System.Text.Json resolved to 10.0.15; no vulnerable transitive packages; core, badge, Sith all passed on same SHA | `4144542f2bd17bdba54cbbdbb9b144d1ce8182e4` | [Core/JCS + dependency audit](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/44207497657) · [Badge](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/44207497698) · [Sith](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/44207497685) |
 | 2026-11-16 | Badge toolchain drift | Fixed: badge sample now targets net10.0; workflow installs both .NET 8 and 10; all four SVG fixtures built, rendered, verified, and uploaded | `5e2ac13d9e575f3ecd750b2709fd4d755f78d5e7` | [Successful badge workflow](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/43812055274); [prior NU1201 failure](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/43811905312) |
 
