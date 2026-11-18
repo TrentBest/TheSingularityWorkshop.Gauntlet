@@ -22,5 +22,23 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Test deterministic campaign evaluator
+      - name: Test deterministic campaign evaluator and strict receipt wire contract
         run: dotnet test tests/Gauntlet.Core.Tests/Gauntlet.Core.Tests.csproj --configuration Release
+
+      - name: Test RFC 8785 integration spike
+        run: dotnet test tests/Gauntlet.Jcs.Tests/Gauntlet.Jcs.Tests.csproj --configuration Release
+
+      - name: Verify canonicalizer dependency resolution
+        shell: bash
+        run: |
+          set -euo pipefail
+          packages="$(dotnet list tests/Gauntlet.Jcs.Tests/Gauntlet.Jcs.Tests.csproj package --include-transitive)"
+          printf '%s\n' "$packages"
+          grep -Eq 'System.Text.Json[[:space:]]+10\.0\.15' <<< "$packages"
+          if grep -Eq 'System.Text.Json[[:space:]]+8\.0\.5' <<< "$packages"; then
+            echo "The canonicalizer's old System.Text.Json minimum must not win package resolution." >&2
+            exit 1
+          fi
+
+      - name: Audit vulnerable transitive dependencies
+        run: dotnet list tests/Gauntlet.Jcs.Tests/Gauntlet.Jcs.Tests.csproj package --vulnerable --include-transitive
