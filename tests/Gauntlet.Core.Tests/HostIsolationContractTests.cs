@@ -33,11 +33,11 @@ public sealed class HostIsolationContractTests
         HostNetworkPolicy.DenyAll, true,
         Request.Candidate.ArtifactDigest, 4096, 1, null, 0, 0,
         Controls, true, true, true,
-        "fixture-provider", "host-fixture-1", "test-key-1", "signed-payload");
+        "fixture-provider", "host-fixture-1", "test-key-1", new string('A', 86));
 
     private sealed class AcceptSignature : IHostReceiptSignatureVerifier
     {
-        public bool Verify(ReadOnlyMemory<byte> canonicalSignedPayload, string signature, string signingKeyId, string hostProvider, string hostIdentity) => !canonicalSignedPayload.IsEmpty && signature == "signed-payload" && signingKeyId == "test-key-1" && hostProvider == "fixture-provider" && hostIdentity == "host-fixture-1";
+        public bool Verify(ReadOnlyMemory<byte> canonicalSignedPayload, string signature, string signingKeyId, string hostProvider, string hostIdentity) => !canonicalSignedPayload.IsEmpty && signature == new string('A', 86) && signingKeyId == "test-key-1" && hostProvider == "fixture-provider" && hostIdentity == "host-fixture-1";
     }
 
     private sealed class RejectSignature : IHostReceiptSignatureVerifier
