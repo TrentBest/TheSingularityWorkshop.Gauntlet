@@ -16,7 +16,8 @@ Gauntlet does not own composition, CI execution authority, release authorization
 |---|---|---|
 | FSM_API | State/context primitives and FSM behavior | Campaign policy or release verdicts |
 | FSM_COS | MicroBundle dependency resolution, composition, and RuntimeAssembly | Adversarial probe execution or release authorization |
-| Gauntlet | Campaign profiles, probes, invariants, findings, score inputs, run reports, regression replay | CI provider trust, host credentials, merge/release permissions |
+| Gauntlet.Core | Campaign profiles, probes, invariants, findings, score inputs, run reports, receipt wire contract, signature-payload construction | CI provider trust, host credentials, merge/release permissions |
+| Gauntlet.Security | ES256 signature verification against an injected host trust store | Private-key custody, trust-store provisioning/distribution, host isolation, merge/release permissions |
 | CI host | Build/test execution, runner isolation, process and resource lifecycle | Gauntlet's domain verdict |
 | CiAi | Exact-run observation, evidence correlation, trust validation, gate policy, reporting | Probe implementation or implicit permission escalation |
 | HeadlessAi | Provider-neutral model invocation and response normalization | Trust decisions, gate overrides, repository-write authorization |
@@ -149,6 +150,8 @@ GUI.SVG serializes the authored semantic GUI tree. It does not own the campaign 
 The host owns sandbox creation and destruction, process isolation, filesystem permissions, network policy, secret injection, and resource quotas. The runner must default to no credentials and no network egress. Probe code and candidate code are untrusted.
 
 Persist bounded logs and artifacts with size limits. Redact secrets before evidence leaves the host. Fail closed if isolation, cleanup, evidence capture, or provenance validation cannot be established.
+
+The version-1 receipt uses ES256 (ECDSA P-256/SHA-256, P1363) with a strict 64-byte base64url wire value. `Gauntlet.Core` builds the exact canonical, domain-separated signature payload; `Gauntlet.Security` verifies it against an injected trust store with exact key/provider/host binding, key validity, and revocation checks. The trust store and provider key lifecycle are host/operator-owned and are not implemented by Gauntlet yet. See [HOST_SIGNATURE_PROFILE.md](HOST_SIGNATURE_PROFILE.md).
 
 ## 11. Non-goals
 
