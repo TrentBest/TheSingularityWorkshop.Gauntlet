@@ -57,7 +57,7 @@ Source references: [canonicalizer implementation](https://github.com/mackysoft/d
 
 ### Gauntlet test-only spike
 
-A dedicated `tests/Gauntlet.Jcs.Tests` project now references `MackySoft.Json.Canonicalization 0.1.0` and directly pins `System.Text.Json 10.0.15`. It does not add the canonicalizer to the shipping core package. Its CI stage checks the resolved dependency graph, rejects the old 8.0.5 dependency winning resolution, runs a vulnerability audit, and exercises Gauntlet's exact signature-excluded projection plus domain separator. This is an isolated qualification spike only; it does not constitute package acceptance.
+A dedicated `tests/Gauntlet.Jcs.Tests` project now references `MackySoft.Json.Canonicalization 0.1.0` and directly pins `System.Text.Json 10.0.15`. It does not add the canonicalizer to the shipping core package. CI passed 64 core tests and 15 JCS integration tests, confirmed the resolved graph uses System.Text.Json 10.0.15 (not 8.0.5), and reported no vulnerable transitive packages. The spike exercises Gauntlet's actual signature-excluded DTO projection plus the exact domain separator. The direct System.Text.Json reference is intentional to override the package's older minimum; NU1510 is narrowly suppressed with an explanatory project comment. This is an isolated qualification spike only; it does not constitute package acceptance.
 
 These are research and test-only integration findings, not production package acceptance. The actual nupkg hash, lock file, full resolved dependency graph, source-to-package parity, and independent RFC vectors remain release gates.
 
