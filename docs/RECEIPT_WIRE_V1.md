@@ -14,10 +14,10 @@ This document and `src/Gauntlet.Core/HostReceiptJsonV1.cs` define the frozen ver
 - Duplicate decoded property names are rejected, including escaped aliases such as `receiptId` and `receipt\\u0049d`.
 - Unknown fields are rejected at every object level.
 - Required properties must be present, even when their declared value is nullable.
-- Numbers are strict JSON integers for the numeric fields below. Floating-point values, strings-as-numbers, and overflow are rejected.
+- Numbers are strict JSON integers for the numeric fields below. Floating-point values, strings-as-numbers, and overflow are rejected. Every integer must remain within the I-JSON safe integer range (−(2^53−1) through +(2^53−1)) so JCS implementations cannot silently round it.
 - Enum-like values are exact, case-sensitive strings. Numeric enum representations and unknown strings are rejected.
 - Strings must contain valid Unicode scalar values. Empty required identity/metadata strings are rejected.
-- Timestamps must parse as `DateTimeOffset` and have a zero UTC offset.
+- Timestamps must parse as `DateTimeOffset`, have a zero UTC offset, and be ordered (`completedAt` must not precede `startedAt`).
 - Unsupported schema versions are rejected. A future incompatible wire change receives a new DTO and schema version; version 1 is not silently reinterpreted.
 
 The parser uses the Workshop standard, `System.Text.Json`, with strict number handling, case-sensitive property matching, unknown-member rejection, required members, and a bounded depth. The raw-byte preflight rejects duplicate decoded names and the UTF-8 BOM before DTO mapping.
@@ -131,7 +131,7 @@ The signature input is not produced by serializing the domain record. The proces
 - Duplicate property names, including escaped aliases and nested duplicates.
 - Invalid UTF-8, BOM, invalid Unicode scalar values, comments, trailing commas, extra top-level values, and excessive nesting.
 - Case-mismatched names, unknown schema versions, unknown enum values, numeric enum values, and numeric coercion attempts.
-- Payload size boundary and overflow values.
+- Payload size boundary, overflow values, I-JSON safe-integer boundaries, and malformed digests.
 - UTC timestamp enforcement and output-artifact null/count/byte consistency.
 - Signature-excluded projection removes only `signature` and retains `signingKeyId`.
 - Independent RFC 8785 vectors and exact domain-separated byte vectors (tracked in `JCS_IMPLEMENTATION_ASSESSMENT.md`).
