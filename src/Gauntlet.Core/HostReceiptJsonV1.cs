@@ -8,8 +8,8 @@ namespace TheSingularityWorkshop.Gauntlet;
 /// Frozen version-1 JSON wire representation of a host execution receipt.
 /// This type is deliberately separate from the domain receipt record.
 /// </summary>
-[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 /// <summary>Version-1 receipt wire DTO with fixed JSON field names.</summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record HostExecutionReceiptV1
 {
     /// <summary>Gets the Schema Version wire value.</summary>
@@ -204,8 +204,8 @@ public sealed record HostExecutionReceiptV1
     public required string Signature { get; init; }
 }
 
-[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 /// <summary>Candidate source and artifact identity in the receipt wire schema.</summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class HostReceiptCandidateV1
 {
     /// <summary>Gets the Repository wire value.</summary>
@@ -232,8 +232,8 @@ public sealed class HostReceiptCandidateV1
     public required string? ManifestDigest { get; init; }
 }
 
-[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 /// <summary>All required host isolation control observations in the receipt wire schema.</summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class HostReceiptEffectiveControlsV1
 {
     /// <summary>Gets the No Credentials wire value.</summary>
@@ -294,8 +294,8 @@ public sealed class HostReceiptEffectiveControlsV1
     public required HostReceiptControlEvidenceV1 ArtifactCountLimit { get; init; }
 }
 
-[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 /// <summary>Configured and independently observed evidence for one host control.</summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class HostReceiptControlEvidenceV1
 {
     /// <summary>Gets the Configured wire value.</summary>
@@ -350,7 +350,14 @@ public static class HostReceiptJsonV1
         if (utf8Json.Length >= 3 && utf8Json[0] == 0xEF && utf8Json[1] == 0xBB && utf8Json[2] == 0xBF)
             throw new JsonException("Receipt JSON must be UTF-8 without a byte-order mark.");
 
-        RejectDuplicatePropertyNames(utf8Json);
+        try
+        {
+            RejectDuplicatePropertyNames(utf8Json);
+        }
+        catch (InvalidOperationException exception)
+        {
+            throw new JsonException("Receipt JSON contains invalid Unicode.", exception);
+        }
 
         var receipt = JsonSerializer.Deserialize<HostExecutionReceiptV1>(utf8Json, SerializerOptions)
             ?? throw new JsonException("Receipt JSON must contain an object.");
