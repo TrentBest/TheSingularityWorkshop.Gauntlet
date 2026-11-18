@@ -138,7 +138,12 @@ public sealed record HostExecutionReceipt(
 /// <summary>Verifies host receipt signatures using an externally managed trust policy.</summary>
 public interface IHostReceiptSignatureVerifier
 {
-    /// <summary>Returns true only when the signature is valid for the exact canonical receipt and trusted key.</summary>
+    /// <summary>Returns true only when the supplied signature authenticates the exact canonical payload under the trusted provider key.</summary>
+    /// <param name="canonicalSignedPayload">Exact domain-separated RFC 8785 bytes produced by the receipt payload builder.</param>
+    /// <param name="signature">The signature value from the receipt wire document.</param>
+    /// <param name="signingKeyId">The provider key identifier.</param>
+    /// <param name="hostProvider">The attested host provider identity.</param>
+    /// <param name="hostIdentity">The attested host/runner identity.</param>
     bool Verify(ReadOnlyMemory<byte> canonicalSignedPayload, string signature, string signingKeyId, string hostProvider, string hostIdentity);
 }
 
