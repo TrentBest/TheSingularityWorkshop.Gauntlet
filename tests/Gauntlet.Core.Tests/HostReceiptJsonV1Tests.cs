@@ -70,7 +70,7 @@ public sealed class HostReceiptJsonV1Tests
         HostProvider = "fixture-provider",
         HostIdentity = "host-fixture-1",
         SigningKeyId = "test-key-1",
-        Signature = "test-signature"
+        Signature = new string('A', 86)
     };
 
     private static byte[] Json(HostExecutionReceiptV1? receipt = null) =>
