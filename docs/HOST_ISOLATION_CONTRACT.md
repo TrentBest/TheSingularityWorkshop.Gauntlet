@@ -73,21 +73,35 @@ The receipt must distinguish **requested**, **configured**, and **observed/enfor
 
 ## Canonical receipt and signature contract
 
-Version 1 receipt signatures use the JSON Canonicalization Scheme (JCS), RFC 8785. This is a wire-format requirement, not a claim that the current core library implements JCS or cryptography.
+The receipt protocol is versioned JSON using the Workshop standard, `System.Text.Json`. The exact version-1 field names, types, required/nullable behavior, and strict parsing rules are defined in [RECEIPT_WIRE_V1.md](RECEIPT_WIRE_V1.md).
 
-The signed message is constructed as follows:
+The parser rejects payloads over 1 MiB, excessive nesting, UTF-8 BOMs, malformed UTF-8/Unicode, duplicate decoded property names (including escaped aliases), comments, trailing commas, additional top-level values, unknown fields, unknown schema versions, numeric coercion, invalid digests, non-UTC timestamps, and values outside the I-JSON safe-integer range. The signature must be canonical unpadded base64url encoding of exactly 64 bytes.
 
-1. Serialize the complete receipt using the versioned wire schema with exact, documented JSON property names and types.
-2. Reject duplicate JSON property names, invalid Unicode, non-I-JSON values, unknown schema versions, and malformed fields before canonicalization. Do not silently coerce values.
-3. Remove the top-level `signature` property entirely. Retain `signingKeyId` and every other receipt field in the signed payload.
-4. Canonicalize the resulting JSON object according to RFC 8785. The canonical bytes are UTF-8 without a byte-order mark.
-5. Prefix those bytes with the exact ASCII domain separator `TheSingularityWorkshop.Gauntlet.HostExecutionReceipt.v1\n`. The signature algorithm signs/verifies this complete byte sequence.
+### Exact signed payload
 
-The algorithm and signature encoding are selected by a separately versioned provider trust profile; this contract does not invent a cryptographic primitive or prescribe a key store. The verifier must bind `signingKeyId` to an explicitly trusted provider identity and enforce key validity, rotation, revocation, and algorithm policy. Unknown keys, unsupported algorithms, malformed signatures, canonicalization failures, and verifier exceptions fail closed.
+`HostReceiptSignaturePayloadBuilder.Build` implements the version-1 payload construction:
 
-Implementations must share published canonicalization and signature test vectors before interoperability is claimed. A non-empty signature string, a successful JSON parse, or a self-reported key ID is never proof of authenticity.
+1. Serialize the validated version-1 DTO using the frozen wire property names.
+2. Remove only the top-level `signature` property; retain `signingKeyId` and every other field.
+3. Pass the signature-excluded JSON bytes to an injected `IHostReceiptCanonicalizer` implementing RFC 8785 JCS.
+4. Prefix the canonical UTF-8 bytes with the exact domain separator `TheSingularityWorkshop.Gauntlet.HostExecutionReceipt.v1\\n`.
+5. Return the exact domain-separated bytes, enforcing a 1 MiB total payload ceiling.
 
-The current C# receipt record and injected verifier remain a schema-validation scaffold, not an implementation of this wire contract. The version-1 wire DTO and strict System.Text.Json parser are now defined separately in `HostReceiptJsonV1.cs`, with the field contract documented in [RECEIPT_WIRE_V1.md](RECEIPT_WIRE_V1.md); this freezes property names and required/nullable shape but does not yet produce JCS bytes or verify signatures. The domain model carries host runner image/platform and adapter version, an explicit deny-all network policy and observed egress-denial state, input/output artifact digests, byte counts, artifact counts, and an explicit terminal reason. Validation binds the input digest to the candidate artifact, enforces artifact byte and count ceilings, and checks terminal-reason/outcome consistency. A frozen JSON wire DTO and strict System.Text.Json parser are implemented and documented in [RECEIPT_WIRE_V1.md](RECEIPT_WIRE_V1.md). The RFC 8785 candidate has passed a test-only integration spike, but package hash/lock/source parity, full independent vectors, and a real trusted-key verifier remain outstanding. The current canonicalizer candidate review is recorded in [JCS_IMPLEMENTATION_ASSESSMENT.md](JCS_IMPLEMENTATION_ASSESSMENT.md); no package dependency has been added or accepted for production use. Do not enable a host adapter or candidate execution until those pieces are completed and independently tested.
+The signature verifier receives those exact bytes, the original signature string, `signingKeyId`, provider identity, host identity, and caller-supplied UTC verification time. It must not independently serialize a domain object or reconstruct the signature value.
+
+### Fixed version-1 signature profile
+
+Version 1 fixes **ES256**: ECDSA P-256 with SHA-256 and IEEE P1363 fixed-field concatenation. The wire signature is 64 bytes, encoded as canonical unpadded base64url (86 ASCII characters). The receipt has no algorithm selector; algorithm policy is fixed by the trusted key profile. See [HOST_SIGNATURE_PROFILE.md](HOST_SIGNATURE_PROFILE.md), [RFC 7518 §3.4](https://www.rfc-editor.org/rfc/rfc7518#section-3.4), and [RFC 7515 §2](https://www.rfc-editor.org/rfc/rfc7515#section-2).
+
+`Gauntlet.Security` implements fail-closed ES256 verification using .NET's ECDSA APIs. It binds key ID, provider, and exact allowed host identity; checks algorithm, UTC validity window, revocation, SPKI import completeness, and P-256 key size; then verifies the exact domain-separated bytes. Verification uses the caller-supplied time, not the verifier's local clock.
+
+### Canonicalizer qualification and trust boundaries
+
+The MackySoft RFC 8785 implementation is currently referenced only by `tests/Gauntlet.Jcs.Tests`; it is not a shipping `Gauntlet.Core` dependency. The test-only project pins its packages in `packages.lock.json`, uses System.Text.Json 10.0.15, and passes the six official RFC 8785 JSON vectors, all 23 Appendix B finite-number vectors, negative/malformed cases, the DTO projection/domain-separator test, and end-to-end ES256 verification. The nupkg source/binary parity and full license/notice review remain release gates. See [JCS_IMPLEMENTATION_ASSESSMENT.md](JCS_IMPLEMENTATION_ASSESSMENT.md).
+
+`ImmutableHostReceiptTrustStore` provides a concrete process-local immutable snapshot with duplicate-key rejection. It is not a persistent or authenticated key-distribution service. Production trust-store provisioning, durable audit, atomic refresh, provider onboarding, key rotation/revocation operations, and replay-guard persistence remain outstanding. The private signing key must remain exclusively in the host provider's signing service or hardware-backed facility; Gauntlet receives public keys only.
+
+A valid signature authenticates receipt bytes; it does not prove the host's OS isolation controls were enforced. Host isolation qualification and CiAi's independent evidence validation remain mandatory. Do not enable candidate-controlled execution until the disposable host adapter and its OS-enforced controls are implemented and independently tested.
 
 ## Fail-closed conditions
 
@@ -117,11 +131,15 @@ This contract is platform-neutral. A future implementation must name and test it
 
 The implementation must include adversarial integration tests that attempt to exceed each declared boundary and verify host-observed denial/termination. Unit tests of request validation are necessary but do not prove operating-system enforcement.
 
-## Current schema-validation implementation
+## Current schema-validation and security implementation
 
-The core library now defines version-1 request, finite-limit, effective-control, terminal-outcome, and receipt models in `HostIsolationContracts.cs`. Its validator rejects malformed or expired requests, unsupported schema versions, non-positive limits, unbounded attempts, candidate/profile/run mismatches, expired receipt timestamps, controls that were configured but not independently observed, observed CPU/memory/process/disk/wall-clock/output/artifact quotas above the requested ceilings, overlong attempts, unsuccessful process-tree termination, failed cleanup, and non-ordinary host outcomes.
+The core library defines versioned host request, finite-limit, effective-control, terminal-outcome, and receipt models in `HostIsolationContracts.cs`. Its validator binds the repository, full commit SHA, candidate artifact digest, profile identity/version/digest, run/attempt, request validity window, configured/observed limits, deny-all network state, artifact digests/bytes/counts, terminal reason, process-tree termination, cleanup, and residual-resource evidence.
 
-Receipt signature verification and replay registration are explicit injected interfaces. A verifier or replay-guard exception is converted into a failed validation result; it must not escape as an accepted or ambiguous receipt. Missing nested control evidence is likewise rejected without throwing. The verifier receives the exact canonical, domain-separated signed payload as bytes, the receipt's signature string, and the signing key ID/provider/host identity context. The signature value is passed explicitly; the verifier must not attempt to reconstruct it from the payload. The validator rejects an empty payload before invoking it. This byte-oriented seam prevents the verifier from independently reserializing a domain object; it is still only an adapter boundary, not a canonicalization or cryptographic implementation. The core library does not contain a signing algorithm, trusted-key store, persistent replay database, provider adapter, or host implementation. Those responsibilities must be supplied by a separately reviewed adapter and CiAi must independently validate the evidence. Unit tests exercise schema and validation behavior only; they do not prove cryptographic authenticity, durable replay resistance, or OS-level enforcement.
+The version-1 `System.Text.Json` wire DTO/parser is implemented in `HostReceiptJsonV1.cs`. It performs strict bounded parsing and exposes the canonical signature decoder. `HostReceiptSignaturePayloadBuilder` creates the exact RFC 8785/domain-separated byte payload through an injected canonicalizer. The canonicalizer package remains test-only.
+
+`Gauntlet.Security` contains `EcdsaP256HostReceiptSignatureVerifier`, `HostReceiptTrustedKey`, the `IHostReceiptTrustStore` contract, and `ImmutableHostReceiptTrustStore`. The immutable store is a process-local snapshot only. No production key distribution, persistent trust store, provider signing service, durable replay database, provider adapter, or host isolation implementation exists yet.
+
+The current validated test evidence is tracked in [RELEASE_READINESS.md](RELEASE_READINESS.md). Unit and integration tests prove the managed contract and cryptographic path under ephemeral test keys; they do not prove OS-level enforcement, a production trust-store lifecycle, or a disposable host boundary.
 
 ## Explicit non-goals
 
