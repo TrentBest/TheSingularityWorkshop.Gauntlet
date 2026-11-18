@@ -346,6 +346,42 @@ public static class HostReceiptJsonV1
         WriteIndented = false
     };
 
+    /// <summary>
+    /// Decodes the version-1 unpadded base64url signature encoding.
+    /// A valid signature is exactly 64 bytes (ES256/P-256 P1363).
+    /// </summary>
+    public static bool TryDecodeSignature(string? signature, out byte[] signatureBytes)
+    {
+        signatureBytes = Array.Empty<byte>();
+        if (signature is null || signature.Length != 86)
+            return false;
+
+        foreach (char character in signature)
+        {
+            if (!(character is >= 'A' and <= 'Z' or >= 'a' and <= 'z' or >= '0' and <= '9' or '-' or '_'))
+                return false;
+        }
+
+        try
+        {
+            string base64 = signature.Replace('-', '+').Replace('_', '/') + "==";
+            byte[] decoded = Convert.FromBase64String(base64);
+            if (decoded.Length != 64)
+                return false;
+
+            string canonical = Convert.ToBase64String(decoded).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+            if (!string.Equals(canonical, signature, StringComparison.Ordinal))
+                return false;
+
+            signatureBytes = decoded;
+            return true;
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+    }
+
     /// <summary>Parses a bounded receipt, rejecting duplicate decoded property names and unknown fields.</summary>
     public static HostExecutionReceiptV1 Deserialize(ReadOnlySpan<byte> utf8Json)
     {
@@ -416,11 +452,13 @@ public static class HostReceiptJsonV1
             string.IsNullOrWhiteSpace(receipt.HostProvider) ||
             string.IsNullOrWhiteSpace(receipt.HostIdentity) ||
             string.IsNullOrWhiteSpace(receipt.SigningKeyId) ||
-            string.IsNullOrWhiteSpace(receipt.Signature) ||
             string.IsNullOrWhiteSpace(receipt.Candidate.Repository) ||
             string.IsNullOrWhiteSpace(receipt.Candidate.CommitSha) ||
             string.IsNullOrWhiteSpace(receipt.Candidate.ArtifactDigest))
             throw new JsonException("Receipt contains a missing required string value.");
+
+        if (!TryDecodeSignature(receipt.Signature, out _))
+            throw new JsonException("Receipt signature must be 64-byte unpadded base64url.");
 
         if (!IsHex(receipt.Candidate.CommitSha, 40) ||
             !IsSha256(receipt.Candidate.ArtifactDigest) ||
