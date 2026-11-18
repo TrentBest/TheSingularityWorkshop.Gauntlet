@@ -107,10 +107,13 @@ public sealed class Rfc8785IntegrationTests
         byte[] domainBytes = Encoding.UTF8.GetBytes(DomainSeparator);
         byte[] signedPayload = [.. domainBytes, .. canonicalJson];
 
+        using JsonDocument wireDocument = JsonDocument.Parse(wireJson);
         using JsonDocument canonicalDocument = JsonDocument.Parse(canonicalJson);
         Assert.False(canonicalDocument.RootElement.TryGetProperty("signature", out _));
         Assert.Equal("fixture-key-1", canonicalDocument.RootElement.GetProperty("signingKeyId").GetString());
-        Assert.Equal(wireJson.Length, wireJson.Length); // The original wire document remains the source input.
+        Assert.Equal(
+            wireDocument.RootElement.EnumerateObject().Count() - 1,
+            canonicalDocument.RootElement.EnumerateObject().Count());
         Assert.Equal(domainBytes, signedPayload[..domainBytes.Length]);
         Assert.Equal(
             canonicalJson,
