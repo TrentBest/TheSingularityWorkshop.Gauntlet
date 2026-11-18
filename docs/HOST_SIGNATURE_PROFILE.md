@@ -1,6 +1,6 @@
 # Host Receipt Signature Profile — Version 1
 
-**Status:** ES256 encoding and verifier implementation are in development; the external trust-store implementation and provider onboarding are not complete.
+**Status:** ES256 wire encoding and the fail-closed verifier implementation are present; CI qualification is pending. The external trust-store implementation and provider onboarding are not complete.
 
 ## Fixed version-1 signature profile
 
@@ -8,7 +8,7 @@ Version 1 uses **ES256**: ECDSA over NIST P-256 with SHA-256. Signatures use IEE
 
 The receipt does not contain an `alg` field and cannot select its own algorithm. The trusted key profile fixes the allowed algorithm to `ES256`. Unsupported algorithms fail closed.
 
-This is the ES256 representation specified by [RFC 7518 §3.4](https://www.rfc-editor.org/rfc/rfc7518#section-3.4). .NET 10 provides `ECDsa.VerifyData` with explicit `DSASignatureFormat.IeeeP1363FixedFieldConcatenation`; see the [Microsoft API reference](https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.ecdsa.verifydata?view=net-10.0).
+This is the ES256 representation specified by [RFC 7518 §3.4](https://www.rfc-editor.org/rfc/rfc7518#section-3.4), encoded as unpadded base64url per [RFC 7515 §2](https://www.rfc-editor.org/rfc/rfc7515#section-2). .NET 10 provides `ECDsa.VerifyData` with explicit `DSASignatureFormat.IeeeP1363FixedFieldConcatenation`; see the [Microsoft API reference](https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.ecdsa.verifydata?view=net-10.0).
 
 ## Exact verification sequence
 
