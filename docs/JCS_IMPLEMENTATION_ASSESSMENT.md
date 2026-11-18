@@ -41,7 +41,25 @@ The package's declared `8.0.5` floor is the patched version for the older CVE-20
 
 The package page confirms the source repository, the pinned RFC-author source lineage, and included Apache-2.0/MPL-2.0 notices. RFC 8785 Appendix G independently lists the `cyberphone/json-canonicalization` .NET/C# implementation as verified compatible with JCS. The MackySoft package is therefore still the most convenient integration candidate, while the RFC authors' implementation remains the stronger provenance fallback if the package's dependency or maintenance profile is unacceptable.
 
-These are research findings, not package acceptance. No package reference has been added.
+### Source-level inspection at the reviewed commit
+
+The package source at `2a0a9f8fd12f37a17cd54dc09904e3d8a484d6fa` was inspected directly:
+
+- Canonicalizer source blob: `68eb9c043a57a8f207d40d109f69239123e85e22`.
+- The raw-byte API validates strict UTF-8, rejects BOM, comments, trailing commas, extra top-level values, and enforces a 64-level raw parse depth.
+- It detects duplicate decoded property names, rejects unpaired UTF-16 surrogates, rejects non-finite/binary64-unrepresentable numbers and negative zero, sorts object property names ordinally, and emits UTF-8 canonical bytes.
+- The canonicalizer uses an iterative traversal for parsed elements; upstream tests exercise 10,000-level parsed object/array values without recursive call-stack traversal.
+- Upstream tests include RFC 8785 official vectors, Appendix B finite-number vectors, malformed syntax, invalid UTF-8, duplicate escaped aliases, invalid Unicode, number rounding, depth boundaries, and caller-owned output buffers.
+- The canonicalizer assembly exports only three public contract types: the canonicalizer, a classified exception, and its failure-kind enum.
+- Third-party notices identify embedded upstream material from the RFC authors' repository, V8, David M. Gay, and WebPKI.org. The package carries MIT, Apache-2.0, MPL-2.0, and BSD-style notice obligations. The actual nupkg and all shipped notice files still need to be checked before production acceptance.
+
+Source references: [canonicalizer implementation](https://github.com/mackysoft/dotnet-foundations/blob/2a0a9f8fd12f37a17cd54dc09904e3d8a484d6fa/src/MackySoft.Json.Canonicalization/Rfc8785JsonCanonicalizer.cs), [contract tests](https://github.com/mackysoft/dotnet-foundations/blob/2a0a9f8fd12f37a17cd54dc09904e3d8a484d6fa/tests/MackySoft.Json.Canonicalization.Tests/Rfc8785JsonCanonicalizerContractTests.cs), [official vector tests](https://github.com/mackysoft/dotnet-foundations/blob/2a0a9f8fd12f37a17cd54dc09904e3d8a484d6fa/tests/MackySoft.Json.Canonicalization.Tests/Rfc8785OfficialVectorTests.cs), and [third-party notices](https://github.com/mackysoft/dotnet-foundations/blob/2a0a9f8fd12f37a17cd54dc09904e3d8a484d6fa/src/MackySoft.Json.Canonicalization/THIRD-PARTY-NOTICES.md).
+
+### Gauntlet test-only spike
+
+A dedicated `tests/Gauntlet.Jcs.Tests` project now references `MackySoft.Json.Canonicalization 0.1.0` and directly pins `System.Text.Json 10.0.15`. It does not add the canonicalizer to the shipping core package. Its CI stage checks the resolved dependency graph, rejects the old 8.0.5 dependency winning resolution, runs a vulnerability audit, and exercises Gauntlet's exact signature-excluded projection plus domain separator. This is an isolated qualification spike only; it does not constitute package acceptance.
+
+These are research and test-only integration findings, not production package acceptance. The actual nupkg hash, lock file, full resolved dependency graph, source-to-package parity, and independent RFC vectors remain release gates.
 
 ## Integration constraints
 
