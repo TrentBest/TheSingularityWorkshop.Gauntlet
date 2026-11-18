@@ -59,7 +59,7 @@ All fields are required unless the nullable behavior is explicitly stated.
 | `hostProvider` | string | Provider identity |
 | `hostIdentity` | string | Specific host/runner identity |
 | `signingKeyId` | string | Key identity interpreted only under external provider trust policy |
-| `signature` | string | Required signature encoding/value; algorithm is selected by external trust profile |
+| `signature` | string | ES256 signature: exactly 64 bytes encoded as canonical unpadded base64url (86 ASCII characters); algorithm is fixed by v1, not selected by receipt data |
 
 ### Candidate object
 
@@ -100,6 +100,14 @@ Each control object has exactly these required properties:
 
 A configured control is not proof of enforcement. The structural/domain validator must compare requested, configured, and observed limits and reject missing or unobserved evidence.
 
+### Signature algorithm and encoding
+
+Version 1 fixes the signature algorithm to **ES256**: ECDSA over NIST P-256 with SHA-256, using IEEE P1363 fixed-field concatenation. The wire value is canonical base64url without padding; it must decode to exactly 64 bytes and round-trip to the same 86-character string. The receipt does not carry an algorithm selector. The trusted provider key profile independently pins ES256 and binds the key ID to its provider and permitted host identities.
+
+This follows the ES256 signature representation in [RFC 7518 §3.4](https://www.rfc-editor.org/rfc/rfc7518#section-3.4). .NET 10's `ECDsa.VerifyData` supports explicit `DSASignatureFormat.IeeeP1363FixedFieldConcatenation`; see [Microsoft's .NET 10 API reference](https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.ecdsa.verifydata?view=net-10.0).
+
+The private signing key remains exclusively in the host provider's signing service. Gauntlet receives only the public key through a separately managed trust store. Key validity, revocation, provider/host identity binding, and rotation are trust-store policy, not candidate-controlled receipt fields.
+
 ### Exact enum strings
 
 `outcome` accepts: `Completed`, `CandidateFailed`, `TimedOut`, `Cancelled`, `ResourceLimited`, `ProvisioningFailed`, `IsolationUnverified`, `TerminationFailed`, `CleanupFailed`.
@@ -137,4 +145,4 @@ The signature input is not produced by serializing the domain record. The proces
 - Signature-excluded projection removes only `signature` and retains `signingKeyId`.
 - Independent RFC 8785 vectors and exact domain-separated byte vectors (tracked in `JCS_IMPLEMENTATION_ASSESSMENT.md`).
 
-The DTO/parser tests do not prove JCS conformance, signature authenticity, durable replay resistance, or host isolation.
+The DTO/parser tests do not prove signature authenticity, trusted-key lifecycle, durable replay resistance, or host isolation. The ES256 verifier is a separate implementation gate.
