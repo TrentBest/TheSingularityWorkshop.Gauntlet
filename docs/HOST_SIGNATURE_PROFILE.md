@@ -1,6 +1,6 @@
 # Host Receipt Signature Profile — Version 1
 
-**Status:** ES256 wire encoding, fail-closed verifier, and end-to-end canonical-payload/signature tests pass CI. The external trust-store implementation and provider onboarding are not complete.
+**Status:** ES256 wire encoding, fail-closed verifier, and end-to-end canonical-payload/signature tests pass CI (73 core/security tests and 46 JCS integration tests). The external trust-store implementation and provider onboarding are not complete.
 
 ## Fixed version-1 signature profile
 
