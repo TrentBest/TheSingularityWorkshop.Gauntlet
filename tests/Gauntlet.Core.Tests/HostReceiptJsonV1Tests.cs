@@ -210,4 +210,63 @@ public sealed class HostReceiptJsonV1Tests
         Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(Json(nonUtc)));
     }
 
+    [Fact]
+    public void Nested_duplicates_and_unknown_nested_fields_are_rejected()
+    {
+        var duplicate = Encoding.UTF8.GetString(Json()).Replace(
+            "\"repository\":\"TrentBest/Fixture\"",
+            "\"repository\":\"TrentBest/Fixture\",\"repositor\\u0079\":\"shadow\"",
+            StringComparison.Ordinal);
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(Encoding.UTF8.GetBytes(duplicate)));
+
+        var unknown = Encoding.UTF8.GetString(Json()).Replace(
+            "\"repository\":\"TrentBest/Fixture\"",
+            "\"repository\":\"TrentBest/Fixture\",\"extra\":true",
+            StringComparison.Ordinal);
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(Encoding.UTF8.GetBytes(unknown)));
+    }
+
+    [Fact]
+    public void Numeric_coercion_numeric_enum_and_multiple_root_values_are_rejected()
+    {
+        var numericString = Encoding.UTF8.GetString(Json()).Replace(
+            "\"profileVersion\":1",
+            "\"profileVersion\":\"1\"",
+            StringComparison.Ordinal);
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(Encoding.UTF8.GetBytes(numericString)));
+
+        var numericEnum = Encoding.UTF8.GetString(Json()).Replace(
+            "\"outcome\":\"Completed\"",
+            "\"outcome\":0",
+            StringComparison.Ordinal);
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(Encoding.UTF8.GetBytes(numericEnum)));
+
+        var multipleRoots = Encoding.UTF8.GetString(Json()) + "{}";
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(Encoding.UTF8.GetBytes(multipleRoots)));
+    }
+
+    [Fact]
+    public void Missing_explicitly_nullable_required_property_and_excessive_depth_are_rejected()
+    {
+        var missingNullable = Encoding.UTF8.GetString(Json()).Replace(
+            "\"manifestDigest\":null,",
+            "",
+            StringComparison.Ordinal);
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(Encoding.UTF8.GetBytes(missingNullable)));
+
+        var deepValue = "\"deep\":" + new string('[', 33) + "0" + new string(']', 33);
+        var excessiveDepth = Encoding.UTF8.GetString(Json()).Replace(
+            "\"receiptId\":\"receipt-1\"",
+            "\"receiptId\":\"receipt-1\"," + deepValue,
+            StringComparison.Ordinal);
+        Assert.ThrowsAny<JsonException>(() => HostReceiptJsonV1.Deserialize(Encoding.UTF8.GetBytes(excessiveDepth)));
+    }
+
+    [Fact]
+    public void Maximum_i_json_safe_integer_is_accepted()
+    {
+        var atBoundary = Receipt with { InputArtifactBytes = 9_007_199_254_740_991L };
+        Assert.Equal(atBoundary.InputArtifactBytes, HostReceiptJsonV1.Deserialize(Json(atBoundary)).InputArtifactBytes);
+    }
+
 }
