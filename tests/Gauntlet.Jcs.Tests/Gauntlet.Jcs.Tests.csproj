@@ -17,5 +17,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/Gauntlet.Core/Gauntlet.Core.csproj" />
+    <ProjectReference Include="../../src/Gauntlet.Security/Gauntlet.Security.csproj" />
   </ItemGroup>
 </Project>
