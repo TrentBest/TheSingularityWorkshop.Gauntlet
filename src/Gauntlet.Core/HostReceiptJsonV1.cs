@@ -384,7 +384,10 @@ public static class HostReceiptJsonV1
         var node = JsonSerializer.SerializeToNode(receipt, SerializerOptions)
             ?? throw new JsonException("Receipt serialization produced no JSON object.");
         node.AsObject().Remove("signature");
-        return JsonSerializer.SerializeToUtf8Bytes(node, SerializerOptions);
+        byte[] result = JsonSerializer.SerializeToUtf8Bytes(node, SerializerOptions);
+        if (result.Length > MaximumReceiptBytes)
+            throw new JsonException("Signature-excluded receipt payload exceeds the maximum byte length.");
+        return result;
     }
 
     private static void ValidateWireValues(HostExecutionReceiptV1 receipt)
