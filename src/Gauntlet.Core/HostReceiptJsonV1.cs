@@ -330,6 +330,7 @@ public static class HostReceiptJsonV1
 {
     /// <summary>Maximum accepted UTF-8 receipt payload size before parsing.</summary>
     public const int MaximumReceiptBytes = 1_048_576;
+    private const long MaximumIJsonSafeInteger = 9_007_199_254_740_991L;
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
@@ -388,8 +389,9 @@ public static class HostReceiptJsonV1
             throw new JsonException("Unsupported host receipt schema version.");
         if (receipt.Candidate is null || receipt.EffectiveControls is null)
             throw new JsonException("Receipt candidate and effectiveControls are required.");
-        if (receipt.StartedAt.Offset != TimeSpan.Zero || receipt.CompletedAt.Offset != TimeSpan.Zero)
-            throw new JsonException("Receipt timestamps must use the UTC offset.");
+        if (receipt.StartedAt.Offset != TimeSpan.Zero || receipt.CompletedAt.Offset != TimeSpan.Zero ||
+            receipt.CompletedAt < receipt.StartedAt)
+            throw new JsonException("Receipt timestamps must be ordered and use the UTC offset.");
         if (!IsDefined<HostExecutionOutcome>(receipt.Outcome) ||
             !IsDefined<HostTerminalReason>(receipt.TerminalReason) ||
             !IsDefined<HostNetworkPolicy>(receipt.NetworkPolicy))
@@ -413,6 +415,23 @@ public static class HostReceiptJsonV1
             string.IsNullOrWhiteSpace(receipt.Candidate.ArtifactDigest))
             throw new JsonException("Receipt contains a missing required string value.");
 
+        if (!IsHex(receipt.Candidate.CommitSha, 40) ||
+            !IsSha256(receipt.Candidate.ArtifactDigest) ||
+            !IsSha256(receipt.ProfileDigest) ||
+            !IsSha256(receipt.InputArtifactDigest) ||
+            (receipt.Candidate.ManifestDigest is not null && !IsSha256(receipt.Candidate.ManifestDigest)) ||
+            (receipt.OutputArtifactDigest is not null && !IsSha256(receipt.OutputArtifactDigest)))
+            throw new JsonException("Receipt contains a malformed commit or SHA-256 digest.");
+
+        if (receipt.ProfileVersion <= 0 || receipt.Attempt <= 0 ||
+            receipt.InputArtifactBytes <= 0 || receipt.InputArtifactCount <= 0 ||
+            receipt.OutputArtifactBytes < 0 || receipt.OutputArtifactCount < 0)
+            throw new JsonException("Receipt versions, attempts, and artifact counts/bytes are outside valid bounds.");
+
+        if (!IsSafeInteger(receipt.InputArtifactBytes) ||
+            !IsSafeInteger(receipt.OutputArtifactBytes))
+            throw new JsonException("Receipt numeric values must be within the I-JSON safe integer range.");
+
         if (receipt.OutputArtifactCount == 0 &&
             (receipt.OutputArtifactBytes != 0 || receipt.OutputArtifactDigest is not null))
             throw new JsonException("An empty output artifact set must have zero bytes and a null digest.");
@@ -435,7 +454,23 @@ public static class HostReceiptJsonV1
 
         if (evidence.Any(item => item is null))
             throw new JsonException("Every effective control evidence object is required.");
+
+        if (evidence.Any(item =>
+                (item.ConfiguredLimit is not null && !IsSafeInteger(item.ConfiguredLimit.Value)) ||
+                (item.ObservedLimit is not null && !IsSafeInteger(item.ObservedLimit.Value))))
+            throw new JsonException("Host control limits must be within the I-JSON safe integer range.");
     }
+
+    private static bool IsSafeInteger(long value) =>
+        value >= -MaximumIJsonSafeInteger && value <= MaximumIJsonSafeInteger;
+
+    private static bool IsHex(string value, int length) =>
+        value.Length == length && value.All(Uri.IsHexDigit);
+
+    private static bool IsSha256(string value) =>
+        value.Length == 71 &&
+        value.StartsWith("sha256:", StringComparison.Ordinal) &&
+        IsHex(value[7..], 64);
 
     private static bool IsDefined<TEnum>(string value) where TEnum : struct, Enum =>
         Enum.TryParse<TEnum>(value, ignoreCase: false, out var parsed) &&
