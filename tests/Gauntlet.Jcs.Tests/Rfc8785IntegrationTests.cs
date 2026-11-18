@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using MackySoft.Json.Canonicalization;
+using TheSingularityWorkshop.Gauntlet.Security;
 using TheSingularityWorkshop.Gauntlet;
 using Xunit;
 
@@ -215,6 +216,64 @@ public sealed class Rfc8785IntegrationTests
         Assert.Throws<JsonException>(() => HostReceiptSignaturePayloadBuilder.Build(
             Receipt,
             new FixedReceiptCanonicalizer(new byte[HostReceiptJsonV1.MaximumReceiptBytes])));
+    }
+
+
+    [Fact]
+    public void Canonical_receipt_payload_verifies_end_to_end_with_es256()
+    {
+        byte[] wireJson = JsonSerializer.SerializeToUtf8Bytes(Receipt);
+        HostExecutionReceiptV1 receipt = HostReceiptJsonV1.Deserialize(wireJson);
+        byte[] signedPayload = HostReceiptSignaturePayloadBuilder.Build(
+            receipt,
+            new MackySoftReceiptCanonicalizer());
+
+        using ECDsa privateKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        byte[] publicKey = privateKey.ExportSubjectPublicKeyInfo();
+        byte[] signatureBytes = privateKey.SignData(
+            signedPayload,
+            HashAlgorithmName.SHA256,
+            DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
+        string signature = Convert.ToBase64String(signatureBytes)
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
+
+        var trustedKey = new HostReceiptTrustedKey(
+            "fixture-key-1",
+            "fixture-provider",
+            EcdsaP256HostReceiptSignatureVerifier.Algorithm,
+            ["fixture-host"],
+            publicKey,
+            DateTimeOffset.Parse("2026-11-18T11:00:00Z"),
+            DateTimeOffset.Parse("2026-11-18T13:00:00Z"),
+            false);
+        var verifier = new EcdsaP256HostReceiptSignatureVerifier(
+            new SingleKeyTrustStore(trustedKey));
+
+        Assert.True(verifier.Verify(
+            signedPayload,
+            signature,
+            "fixture-key-1",
+            "fixture-provider",
+            "fixture-host",
+            DateTimeOffset.Parse("2026-11-18T12:00:00Z")));
+        Assert.False(verifier.Verify(
+            signedPayload,
+            signature,
+            "fixture-key-1",
+            "fixture-provider",
+            "different-host",
+            DateTimeOffset.Parse("2026-11-18T12:00:00Z")));
+    }
+
+    private sealed class SingleKeyTrustStore(HostReceiptTrustedKey key) : IHostReceiptTrustStore
+    {
+        public bool TryGetKey(string keyId, out HostReceiptTrustedKey? trustedKey)
+        {
+            trustedKey = string.Equals(keyId, key.KeyId, StringComparison.Ordinal) ? key : null;
+            return trustedKey is not null;
+        }
     }
 
     private sealed class MackySoftReceiptCanonicalizer : IHostReceiptCanonicalizer
