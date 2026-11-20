@@ -208,6 +208,20 @@ public sealed class Rfc8785IntegrationTests
 
 
     [Fact]
+    public void Signature_payload_builder_passes_signature_excluded_json_and_returns_exact_domain_separated_bytes()
+    {
+        byte[] canonicalBytes = Encoding.UTF8.GetBytes("""{"independent":"canonical-bytes"}""");
+        var canonicalizer = new InspectingReceiptCanonicalizer(canonicalBytes);
+
+        byte[] signedPayload = HostReceiptSignaturePayloadBuilder.Build(Receipt, canonicalizer);
+        byte[] expected = Encoding.UTF8.GetBytes(
+            HostReceiptSignaturePayloadBuilder.DomainSeparator + """{"independent":"canonical-bytes"}""");
+
+        Assert.Equal(expected, signedPayload);
+        Assert.Equal(1, canonicalizer.CallCount);
+    }
+
+    [Fact]
     public void Signature_payload_builder_rejects_empty_and_oversized_canonicalizer_output()
     {
         Assert.Throws<JsonException>(() => HostReceiptSignaturePayloadBuilder.Build(
@@ -281,6 +295,27 @@ public sealed class Rfc8785IntegrationTests
     {
         public byte[] Canonicalize(ReadOnlySpan<byte> utf8Json) =>
             Rfc8785JsonCanonicalizer.Canonicalize(utf8Json);
+    }
+
+    private sealed class InspectingReceiptCanonicalizer(byte[] canonicalBytes) : IHostReceiptCanonicalizer
+    {
+        public int CallCount { get; private set; }
+
+        public byte[] Canonicalize(ReadOnlySpan<byte> utf8Json)
+        {
+            CallCount++;
+            using JsonDocument document = JsonDocument.Parse(utf8Json);
+            JsonElement root = document.RootElement;
+
+            Assert.Equal(JsonValueKind.Object, root.ValueKind);
+            Assert.False(root.TryGetProperty("signature", out _));
+            Assert.Equal("fixture-key-1", root.GetProperty("signingKeyId").GetString());
+            Assert.Equal(
+                JsonSerializer.SerializeToElement(Receipt).EnumerateObject().Count() - 1,
+                root.EnumerateObject().Count());
+
+            return canonicalBytes.ToArray();
+        }
     }
 
     private sealed class FixedReceiptCanonicalizer(byte[] result) : IHostReceiptCanonicalizer
