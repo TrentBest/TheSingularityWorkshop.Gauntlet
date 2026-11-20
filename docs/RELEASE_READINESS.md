@@ -5,14 +5,14 @@
 **Current release state:** `NOT READY`  
 **Final owner review:** `NOT REQUESTED`  
 **Publication authorization:** `NOT GRANTED`  
-**Last reviewed:** 2026-11-18
+**Last reviewed:** 2026-11-20
 
 > [!IMPORTANT]
 > Completing this checklist does not authorize a merge, NuGet publication, GitHub release, deployment, or any other privileged action. The owner must review the exact release candidate and explicitly authorize publication. No automation, passing test, badge, score, or agent may infer that authorization.
 
-## Current readiness snapshot — 2026-11-18
+## Current readiness snapshot — 2026-11-20
 
-**Engineering progress:** The .NET 10 core, strict version-1 receipt JSON contract, bounded RFC 8785 signature-payload builder, ES256 verifier, and immutable process-local trust snapshot are implemented. The test-only JCS integration passes all six official RFC 8785 JSON vectors, all 23 Appendix B finite-number vectors, and the end-to-end ES256 verification path. Latest verified code evidence: 75 core/security tests and 46 JCS integration tests passed; dependency restore is locked to System.Text.Json 10.0.15; no vulnerable transitive packages were reported; badge and Sith workflows passed. Repository topology is exactly `development` and `master`; `master` remains unchanged at `0dda74197b4f7fc3f547dc369737227beb6c22d2`.
+**Engineering progress:** The .NET 10 core, strict version-1 receipt JSON contract, bounded RFC 8785 signature-payload builder, ES256 verifier, and immutable process-local trust snapshot are implemented. The test-only JCS integration passes all six official RFC 8785 JSON vectors, all 23 Appendix B finite-number vectors, and the end-to-end ES256 verification path. Latest verified code evidence on `57592a7ed07bf25cb59609178c7d09791bc22db5`: 76 core/security tests and 47 JCS integration tests passed; dependency restore is locked to System.Text.Json 10.0.15; no vulnerable transitive packages were reported; badge and Sith workflows passed. Repository topology is exactly `development` and `master`; `master` remains unchanged at `0dda74197b4f7fc3f547dc369737227beb6c22d2`.
 
 **Remaining release blockers:**
 
@@ -220,6 +220,7 @@ Add one row per material gate result. Prefer immutable commit SHAs and workflow 
 | 2026-11-18 | Locked JCS CI verification | 65 core + 15 JCS tests passed; locked restore, dependency pin, vulnerability audit, badge workflow, and Sith policy all passed on the same SHA | `1b37806dda7cec2688d003474a51531acef0f8db` | [Core/JCS locked restore + audit](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/44207866710) · [Badge](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/44207866568) · [Sith](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/44207866745) |
 | 2026-11-18 | Official JCS vectors | 65 core + 44 JCS tests passed; all six official RFC 8785 JSON vectors and 23 Appendix B finite-number vectors pass | `9c7579efd04b74637def123f9b170c55215528c2` | [Core/JCS CI](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/44208233538) · [JCS assessment](JCS_IMPLEMENTATION_ASSESSMENT.md) |
 | 2026-11-18 | Strict wire and JCS qualification | 65 core tests + 15 JCS tests passed; System.Text.Json resolved to 10.0.15; no vulnerable transitive packages; core, badge, Sith all passed on same SHA | `4144542f2bd17bdba54cbbdbb9b144d1ce8182e4` | [Core/JCS + dependency audit](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/44207497657) · [Badge](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/44207497698) · [Sith](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/44207497685) |
+| 2026-11-20 | Trusted-key snapshot memory immutability | Defensive copy added for exposed SPKI memory; mutation attempt test confirms callers cannot alter the trust snapshot; 76 core + 47 JCS tests passed, locked restore and vulnerability audit passed, badge and Sith workflows passed | `57592a7ed07bf25cb59609178c7d09791bc22db5` | [Core/JCS + dependency audit](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/44676389697) · [Badge](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/44676389661) · [Sith](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/44676389664) · [Commit](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/commit/57592a7ed07bf25cb59609178c7d09791bc22db5) |
 | 2026-11-16 | Badge toolchain drift | Fixed: badge sample now targets net10.0; workflow installs both .NET 8 and 10; all four SVG fixtures built, rendered, verified, and uploaded | `5e2ac13d9e575f3ecd750b2709fd4d755f78d5e7` | [Successful badge workflow](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/43812055274); [prior NU1201 failure](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/43811905312) |
 
 ## Final approval record
