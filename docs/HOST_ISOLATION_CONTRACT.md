@@ -101,6 +101,19 @@ The MackySoft RFC 8785 implementation is currently referenced only by `tests/Gau
 
 `ImmutableHostReceiptTrustStore` provides a concrete process-local immutable snapshot with duplicate-key rejection. It is not a persistent or authenticated key-distribution service. Production trust-store provisioning, durable audit, atomic refresh, provider onboarding, key rotation/revocation operations, and replay-guard persistence remain outstanding. The private signing key must remain exclusively in the host provider's signing service or hardware-backed facility; Gauntlet receives public keys only.
 
+### Durable replay protection contract
+
+`IHostReceiptReplayGuard.TryRegister(receiptId)` is an injected persistence boundary, not an in-memory cache recommendation. A production implementation must satisfy all of the following:
+
+- **Atomic uniqueness:** concurrent calls from different threads, processes, hosts, and service instances for the same identifier in the same trust domain have one winner at most. The uniqueness operation must be linearizable (or provide an equivalent database uniqueness transaction).
+- **Durable success:** returning `true` means the identifier's registration has been durably committed. A process crash or machine restart after that return must not make the identifier available again.
+- **Duplicate result:** return `false` only when the identifier is already durably registered. Never treat a timeout, unavailable store, uncertain commit, or storage error as a fresh identifier; surface failures so validation remains fail-closed.
+- **Stable scope and identity:** identifiers are compared exactly and case-sensitively. The guard's configured trust domain defines the uniqueness namespace; all providers whose receipts are accepted in that domain share the same namespace. Receipt producers must generate collision-resistant IDs within that namespace.
+- **Retention:** registrations must remain effective for as long as a receipt could still be accepted. No time-based eviction is safe until the protocol defines and enforces a maximum receipt-acceptance horizon (including clock skew and recovery behavior). A storage cleanup policy must not silently shorten that horizon.
+- **Recovery and operations:** restart/recovery must preserve committed registrations; backups, replication, failover, and restore procedures must not roll the replay ledger back behind accepted receipts. Storage corruption or inability to establish the ledger's current state denies acceptance.
+
+The validator calls the guard only after structural, request-binding, outcome, cleanup, and signature checks pass. Its existing exception handling rejects a failed registration. The current test `ReplayGuard` is deliberately process-local and proves only the validator's call ordering and duplicate handling; it is not evidence of durability, multi-process atomicity, or production readiness. A future adapter must add integration tests against its actual durable store, including concurrent writers, process restart, uncertain commit, failover/restore, and retention-boundary cases.
+
 A valid signature authenticates receipt bytes; it does not prove the host's OS isolation controls were enforced. Host isolation qualification and CiAi's independent evidence validation remain mandatory. Do not enable candidate-controlled execution until the disposable host adapter and its OS-enforced controls are implemented and independently tested.
 
 ## Fail-closed conditions
