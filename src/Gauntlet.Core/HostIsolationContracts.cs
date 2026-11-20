@@ -148,10 +148,25 @@ public interface IHostReceiptSignatureVerifier
     bool Verify(ReadOnlyMemory<byte> canonicalSignedPayload, string signature, string signingKeyId, string hostProvider, string hostIdentity, DateTimeOffset verificationTime);
 }
 
-/// <summary>Atomically rejects receipt identifiers that have already been accepted.</summary>
+/// <summary>
+/// Provides durable, atomic receipt replay protection within one configured trust domain.
+/// Implementations must coordinate across processes and service instances, not only threads.
+/// </summary>
+/// <remarks>
+/// Returning true means the registration is durably committed and survives process or machine
+/// restart. Concurrent registrations of the same exact, case-sensitive identifier have at most
+/// one successful caller. Returning false means the identifier was already committed. Storage
+/// errors, timeouts, uncertain commits, and an unavailable or inconsistent ledger must fail
+/// closed by throwing; they must never be treated as a new identifier. Registrations must not
+/// expire while a receipt could still be accepted. Time-based retention requires a separately
+/// defined and enforced maximum receipt-acceptance horizon. The trust domain is the uniqueness
+/// namespace shared by every provider accepted through this guard.
+/// </remarks>
 public interface IHostReceiptReplayGuard
 {
-    /// <summary>Registers a receipt identifier once; returns false when it was already registered.</summary>
+    /// <summary>Durably registers an identifier once; returns false if it was already committed.</summary>
+    /// <param name="receiptId">Exact, case-sensitive identifier unique within the guard's trust domain.</param>
+    /// <returns>True only after durable commit; false only for a previously committed identifier.</returns>
     bool TryRegister(string receiptId);
 }
 
