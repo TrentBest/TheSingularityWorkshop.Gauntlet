@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Runtime.InteropServices;
 using System.Text;
 using TheSingularityWorkshop.Gauntlet.Security;
 using Xunit;
@@ -131,6 +132,21 @@ public sealed class EcdsaP256HostReceiptSignatureVerifierTests
 
         Assert.True(entry.AllowsHostIdentity(Host));
         Assert.NotEmpty(entry.SubjectPublicKeyInfo.ToArray());
+    }
+
+    [Fact]
+    public void Trusted_key_public_key_memory_cannot_mutate_the_trust_snapshot()
+    {
+        using var privateKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        byte[] original = privateKey.ExportSubjectPublicKeyInfo();
+        var entry = Entry(original);
+
+        ReadOnlyMemory<byte> exposed = entry.SubjectPublicKeyInfo;
+        Assert.True(MemoryMarshal.TryGetArray(exposed, out ArraySegment<byte> segment));
+        Assert.NotNull(segment.Array);
+        segment.Array![segment.Offset] ^= 0xFF;
+
+        Assert.Equal(original, entry.SubjectPublicKeyInfo.ToArray());
     }
 
     [Fact]

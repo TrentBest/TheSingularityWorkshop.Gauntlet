@@ -31,7 +31,7 @@ public sealed class HostReceiptTrustedKey
     public bool IsRevoked { get; }
 
     /// <summary>Gets a read-only view of the DER SubjectPublicKeyInfo bytes.</summary>
-    public ReadOnlyMemory<byte> SubjectPublicKeyInfo => _subjectPublicKeyInfo;
+    public ReadOnlyMemory<byte> SubjectPublicKeyInfo => _subjectPublicKeyInfo.ToArray();
 
     /// <summary>Creates a trust entry by copying the supplied public key and allowed host identities.</summary>
     public HostReceiptTrustedKey(
