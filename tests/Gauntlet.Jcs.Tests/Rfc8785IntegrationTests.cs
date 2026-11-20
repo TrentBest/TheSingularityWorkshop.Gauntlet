@@ -304,7 +304,7 @@ public sealed class Rfc8785IntegrationTests
         public byte[] Canonicalize(ReadOnlySpan<byte> utf8Json)
         {
             CallCount++;
-            using JsonDocument document = JsonDocument.Parse(utf8Json);
+            using JsonDocument document = JsonDocument.Parse(utf8Json.ToArray());
             JsonElement root = document.RootElement;
 
             Assert.Equal(JsonValueKind.Object, root.ValueKind);
