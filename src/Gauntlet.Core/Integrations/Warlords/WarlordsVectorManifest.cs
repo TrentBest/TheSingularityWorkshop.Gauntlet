@@ -16,16 +16,12 @@ public sealed record WarlordsVectorManifest(
     IReadOnlyList<WarlordsVectorCommand> Commands,
     JsonElement ExpectedFinalSnapshot)
 {
-    /// <summary>Only this vector envelope version is accepted.</summary>
     public const int SupportedSchemaVersion = 1;
-    /// <summary>Stable key for the current Warlords starter map.</summary>
     public const string SupportedScenarioKey = "four-kingdoms";
-    /// <summary>Supported version of the starter scenario.</summary>
     public const int SupportedScenarioVersion = 1;
-    /// <summary>Exact rules identity supported by this adapter.</summary>
     public const string SupportedRulesVersion = "warlords-four-kingdoms/1";
 
-    /// <summary>Parses and validates the stable v1 fixture envelope. Domain event and snapshot bodies remain opaque JSON data.</summary>
+    /// <summary>Parses the strict v1 envelope; domain event and snapshot bodies remain opaque JSON data.</summary>
     public static WarlordsVectorManifest Parse(ReadOnlyMemory<byte> utf8Json)
     {
         using var document = JsonDocument.Parse(utf8Json, new JsonDocumentOptions
@@ -38,10 +34,13 @@ public sealed record WarlordsVectorManifest(
         var root = document.RootElement;
         RequireKind(root, JsonValueKind.Object, "vector");
         RejectDuplicatePropertiesRecursively(root, "vector");
+        RejectUnknownProperties(root, "vector",
+            "id", "schemaVersion", "scenario", "rulesVersion", "seed", "commands", "expectedFinalSnapshot");
 
         var id = RequiredString(root, "id");
         var schemaVersion = RequiredInt32(root, "schemaVersion");
         var scenario = RequiredObject(root, "scenario");
+        RejectUnknownProperties(scenario, "scenario", "key", "version");
         var scenarioKey = RequiredString(scenario, "key");
         var scenarioVersion = RequiredInt32(scenario, "version");
         var rulesVersion = RequiredString(root, "rulesVersion");
@@ -62,18 +61,18 @@ public sealed record WarlordsVectorManifest(
             throw Invalid("Vector must contain at least one command.");
 
         var commands = new List<WarlordsVectorCommand>();
-        var sequences = new HashSet<int>();
         var expectedSequence = 1;
 
         foreach (var item in commandsElement.EnumerateArray())
         {
             RequireKind(item, JsonValueKind.Object, "command");
+            RejectUnknownProperties(item, "command",
+                "sequence", "kind", "source", "destination", "armies", "expected");
             var sequence = RequiredInt32(item, "sequence");
             var kind = RequiredString(item, "kind");
             var expected = RequiredObject(item, "expected");
+            RejectUnknownProperties(expected, "expected", "result", "event");
 
-            if (sequence < 1 || !sequences.Add(sequence))
-                throw Invalid($"Command sequence '{sequence}' is invalid or duplicated.");
             if (sequence != expectedSequence++)
                 throw Invalid("Command sequences must be contiguous and ordered from 1.");
             if (kind is not ("march" or "endTurn"))
@@ -89,6 +88,12 @@ public sealed record WarlordsVectorManifest(
                 armies = RequiredInt32(item, "armies");
                 if (string.IsNullOrWhiteSpace(source) || string.IsNullOrWhiteSpace(destination) || armies <= 0)
                     throw Invalid($"March command {sequence} has invalid source, destination, or army count.");
+            }
+            else if (item.TryGetProperty("source", out _) ||
+                     item.TryGetProperty("destination", out _) ||
+                     item.TryGetProperty("armies", out _))
+            {
+                throw Invalid($"endTurn command {sequence} must not contain march-specific fields.");
             }
 
             var result = RequiredString(expected, "result");
@@ -115,6 +120,14 @@ public sealed record WarlordsVectorManifest(
         return new WarlordsVectorManifest(
             id, schemaVersion, scenarioKey, scenarioVersion, rulesVersion, seed,
             commands.AsReadOnly(), snapshot.Clone());
+    }
+
+    private static void RejectUnknownProperties(JsonElement value, string path, params string[] allowed)
+    {
+        var names = new HashSet<string>(allowed, StringComparer.Ordinal);
+        foreach (var property in value.EnumerateObject())
+            if (!names.Contains(property.Name))
+                throw Invalid($"'{path}' contains unsupported property '{property.Name}'.");
     }
 
     private static JsonElement RequiredObject(JsonElement parent, string name)
