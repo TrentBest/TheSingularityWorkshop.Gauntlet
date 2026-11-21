@@ -90,8 +90,8 @@ public sealed record WarlordsVectorManifest(
                 source = RequiredString(item, "source");
                 destination = RequiredString(item, "destination");
                 armies = RequiredInt32(item, "armies");
-                if (string.IsNullOrWhiteSpace(source) || string.IsNullOrWhiteSpace(destination) || armies <= 0)
-                    throw Invalid($"March command {sequence} has invalid source, destination, or army count.");
+                if (string.IsNullOrWhiteSpace(source) || string.IsNullOrWhiteSpace(destination))
+                    throw Invalid($"March command {sequence} has invalid source or destination.");
             }
             else if (item.TryGetProperty("source", out _) ||
                      item.TryGetProperty("destination", out _) ||
@@ -103,6 +103,8 @@ public sealed record WarlordsVectorManifest(
             var result = RequiredString(expected, "result");
             if (result is not ("accepted" or "rejected"))
                 throw Invalid($"Command {sequence} has unsupported expected result '{result}'.");
+            if (result == "accepted" && kind == "march" && armies <= 0)
+                throw Invalid($"Accepted march command {sequence} must have a positive army count.");
 
             JsonElement? expectedEvent = null;
             if (expected.TryGetProperty("event", out var eventElement))
