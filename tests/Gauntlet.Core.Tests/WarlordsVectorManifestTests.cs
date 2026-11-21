@@ -146,7 +146,7 @@ public sealed class WarlordsVectorManifestTests
             .Replace("\"result\": \"accepted\"", "\"result\": \"rejected\"", StringComparison.Ordinal);
         json = Regex.Replace(
             json,
-            @",\\s*""event"":\\s*\\{[^{}]*\\}",
+            @",\s*""event"":\s*\{[^{}]*\}",
             string.Empty,
             RegexOptions.CultureInvariant,
             TimeSpan.FromSeconds(1));
