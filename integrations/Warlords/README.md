@@ -20,10 +20,11 @@ Each Experiences-owned vector declares:
 - integer `seed`;
 - ordered `commands` with contiguous 1-based `sequence`;
 - each command's `kind` (`march` or `endTurn`) and `expected.result` (`accepted` or `rejected`);
-- accepted march commands include their complete literal `expected.event`;
+- accepted march commands include their complete literal `expected.event` and must specify a positive army count;
+- rejected march commands preserve their literal signed army count, including zero and negative values, so adversarial domain inputs remain representable without parser normalization;
 - `expectedFinalSnapshot` contains the complete authoritative final domain snapshot.
 
-The parser deliberately does not reinterpret combat, turns, territory ownership, or snapshot contents. Those semantics remain in the Warlords domain and its golden-vector tests. A rejected command must not carry an accepted event.
+The parser deliberately does not reinterpret combat, turns, territory ownership, command legality, or snapshot contents. Those semantics remain in the Warlords domain and its golden-vector tests. It validates only the envelope's consistency: accepted marches require a positive army count and a complete expected event; rejected commands must not carry an accepted event. In particular, the parser does not sanitize rejected zero/negative army counts.
 
 ## Campaign integration status
 
