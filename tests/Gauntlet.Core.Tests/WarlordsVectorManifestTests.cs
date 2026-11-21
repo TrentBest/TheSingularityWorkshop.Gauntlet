@@ -144,7 +144,8 @@ public sealed class WarlordsVectorManifestTests
             .Replace("\"armies\": 4", $"\"armies\": {armies}", StringComparison.Ordinal)
             .Replace("\"result\": \"accepted\"", "\"result\": \"rejected\"", StringComparison.Ordinal)
             .Replace(
-                "\"event\": { \"sequence\": 1, \"ruleId\": \"combat.seeded-d6-strength-comparison\" }",
+                ",
+                \"event\": { \"sequence\": 1, \"ruleId\": \"combat.seeded-d6-strength-comparison\" }",
                 "",
                 StringComparison.Ordinal);
 
