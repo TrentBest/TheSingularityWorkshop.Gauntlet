@@ -141,10 +141,10 @@ public sealed class WarlordsVectorManifestTests
     public void Preserves_non_positive_army_counts_for_rejected_marches(int armies)
     {
         var json = ValidVector
-            .Replace("\\"armies\\": 4", $"\\"armies\\": {armies}", StringComparison.Ordinal)
-            .Replace("\\"result\\": \\"accepted\\"", "\\"result\\": \\"rejected\\"", StringComparison.Ordinal)
+            .Replace("\"armies\": 4", $"\"armies\": {armies}", StringComparison.Ordinal)
+            .Replace("\"result\": \"accepted\"", "\"result\": \"rejected\"", StringComparison.Ordinal)
             .Replace(
-                "\\"event\\": { \\"sequence\\": 1, \\"ruleId\\": \\"combat.seeded-d6-strength-comparison\\" }",
+                "\"event\": { \"sequence\": 1, \"ruleId\": \"combat.seeded-d6-strength-comparison\" }",
                 "",
                 StringComparison.Ordinal);
 
@@ -161,8 +161,8 @@ public sealed class WarlordsVectorManifestTests
     public void Rejects_non_positive_army_counts_for_accepted_marches(int armies)
     {
         var json = ValidVector.Replace(
-            "\\"armies\\": 4",
-            $"\\"armies\\": {armies}",
+            "\"armies\": 4",
+            $"\"armies\": {armies}",
             StringComparison.Ordinal);
 
         Assert.Throws<FormatException>(() => Parse(json));
