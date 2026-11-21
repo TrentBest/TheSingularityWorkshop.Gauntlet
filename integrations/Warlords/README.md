@@ -35,7 +35,7 @@ Candidate replay remains **blocked** until Gauntlet's host-owned isolation adapt
 
 ## Next implementation steps
 
-1. Extend parser tests against the first complete Experiences-owned golden vector.
+1. Bind the parser to the first complete Experiences-owned golden vector and test the full literal event/snapshot payloads.
 2. Consume the actual Experiences-owned corpus at a pinned commit/artifact and verify its digest.
 3. Map each vector to trusted campaign probe definitions without duplicating Warlords rules.
 4. Build an evidence/report projection that remains incomplete until qualified host replay exists.
