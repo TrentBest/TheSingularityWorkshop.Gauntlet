@@ -48,7 +48,6 @@ public sealed class WarlordsVectorManifestTests
     public void Parses_supported_v1_vector_as_data()
     {
         var vector = Parse(ValidVector);
-
         Assert.Equal("azure-opening-capture", vector.Id);
         Assert.Equal(17, vector.Seed);
         Assert.Equal(2, vector.Commands.Count);
@@ -70,7 +69,6 @@ public sealed class WarlordsVectorManifestTests
     {
         var scenario = ValidVector.Replace("four-kingdoms", "unknown-map", StringComparison.Ordinal);
         Assert.Throws<FormatException>(() => Parse(scenario));
-
         var rules = ValidVector.Replace("warlords-four-kingdoms/1", "warlords-four-kingdoms/2", StringComparison.Ordinal);
         Assert.Throws<FormatException>(() => Parse(rules));
     }
@@ -80,7 +78,6 @@ public sealed class WarlordsVectorManifestTests
     {
         var duplicate = ValidVector.Replace("\"sequence\": 2", "\"sequence\": 1", StringComparison.Ordinal);
         Assert.Throws<FormatException>(() => Parse(duplicate));
-
         var gap = ValidVector.Replace("\"sequence\": 2", "\"sequence\": 3", StringComparison.Ordinal);
         Assert.Throws<FormatException>(() => Parse(gap));
     }
@@ -133,7 +130,6 @@ public sealed class WarlordsVectorManifestTests
     {
         var kind = ValidVector.Replace("\"kind\": \"march\"", "\"kind\": \"executeScript\"", StringComparison.Ordinal);
         Assert.Throws<FormatException>(() => Parse(kind));
-
         var armies = ValidVector.Replace("\"armies\": 4", "\"armies\": 0", StringComparison.Ordinal);
         Assert.Throws<FormatException>(() => Parse(armies));
     }
@@ -143,5 +139,27 @@ public sealed class WarlordsVectorManifestTests
     {
         var json = ValidVector.Replace("\"expectedFinalSnapshot\": {", "\"finalSnapshot\": {", StringComparison.Ordinal);
         Assert.Throws<FormatException>(() => Parse(json));
+    }
+
+    [Fact]
+    public void Rejects_unknown_envelope_properties_and_march_fields_on_end_turn()
+    {
+        var rootProperty = ValidVector.Replace(
+            "\"schemaVersion\": 1,",
+            "\"schemaVersion\": 1, \"futureBehavior\": \"execute\",",
+            StringComparison.Ordinal);
+        Assert.Throws<FormatException>(() => Parse(rootProperty));
+
+        var commandProperty = ValidVector.Replace(
+            "\"kind\": \"march\",",
+            "\"kind\": \"march\", \"script\": \"candidate-code\",",
+            StringComparison.Ordinal);
+        Assert.Throws<FormatException>(() => Parse(commandProperty));
+
+        var endTurnWithMarchData = ValidVector.Replace(
+            "\"kind\": \"endTurn\",",
+            "\"kind\": \"endTurn\", \"source\": \"azure-keep\",",
+            StringComparison.Ordinal);
+        Assert.Throws<FormatException>(() => Parse(endTurnWithMarchData));
     }
 }
