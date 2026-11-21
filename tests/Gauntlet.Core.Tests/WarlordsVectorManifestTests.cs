@@ -134,6 +134,40 @@ public sealed class WarlordsVectorManifestTests
         Assert.Throws<FormatException>(() => Parse(armies));
     }
 
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-3)]
+    public void Preserves_non_positive_army_counts_for_rejected_marches(int armies)
+    {
+        var json = ValidVector
+            .Replace("\\"armies\\": 4", $"\\"armies\\": {armies}", StringComparison.Ordinal)
+            .Replace("\\"result\\": \\"accepted\\"", "\\"result\\": \\"rejected\\"", StringComparison.Ordinal)
+            .Replace(
+                "\\"event\\": { \\"sequence\\": 1, \\"ruleId\\": \\"combat.seeded-d6-strength-comparison\\" }",
+                "",
+                StringComparison.Ordinal);
+
+        var vector = Parse(json);
+
+        Assert.Equal("rejected", vector.Commands[0].ExpectedResult);
+        Assert.Equal(armies, vector.Commands[0].Armies);
+        Assert.Null(vector.Commands[0].ExpectedEvent);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-3)]
+    public void Rejects_non_positive_army_counts_for_accepted_marches(int armies)
+    {
+        var json = ValidVector.Replace(
+            "\\"armies\\": 4",
+            $"\\"armies\\": {armies}",
+            StringComparison.Ordinal);
+
+        Assert.Throws<FormatException>(() => Parse(json));
+    }
+
     [Fact]
     public void Rejects_missing_final_snapshot()
     {
