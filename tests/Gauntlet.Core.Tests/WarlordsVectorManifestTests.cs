@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.RegularExpressions;
 using TheSingularityWorkshop.Gauntlet.Integrations.Warlords;
 using Xunit;
 
@@ -143,10 +144,12 @@ public sealed class WarlordsVectorManifestTests
         var json = ValidVector
             .Replace("\"armies\": 4", $"\"armies\": {armies}", StringComparison.Ordinal)
             .Replace("\"result\": \"accepted\"", "\"result\": \"rejected\"", StringComparison.Ordinal);
-        json = json.Replace(
-            ",\n            \"event\": { \"sequence\": 1, \"ruleId\": \"combat.seeded-d6-strength-comparison\" }",
+        json = Regex.Replace(
+            json,
+            @",\\s*""event"":\\s*\\{[^{}]*\\}",
             string.Empty,
-            StringComparison.Ordinal);
+            RegexOptions.CultureInvariant,
+            TimeSpan.FromSeconds(1));
 
         var vector = Parse(json);
 
