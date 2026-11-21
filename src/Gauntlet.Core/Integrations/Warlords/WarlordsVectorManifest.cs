@@ -16,9 +16,13 @@ public sealed record WarlordsVectorManifest(
     IReadOnlyList<WarlordsVectorCommand> Commands,
     JsonElement ExpectedFinalSnapshot)
 {
+    /// <summary>The only supported vector envelope schema version.</summary>
     public const int SupportedSchemaVersion = 1;
+    /// <summary>Stable key of the supported four-kingdoms starter scenario.</summary>
     public const string SupportedScenarioKey = "four-kingdoms";
+    /// <summary>Version of the supported four-kingdoms starter scenario.</summary>
     public const int SupportedScenarioVersion = 1;
+    /// <summary>Exact rules identity supported by this adapter.</summary>
     public const string SupportedRulesVersion = "warlords-four-kingdoms/1";
 
     /// <summary>Parses the strict v1 envelope; domain event and snapshot bodies remain opaque JSON data.</summary>
