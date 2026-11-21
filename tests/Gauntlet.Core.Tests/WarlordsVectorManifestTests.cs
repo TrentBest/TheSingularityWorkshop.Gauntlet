@@ -143,7 +143,7 @@ public sealed class WarlordsVectorManifestTests
     {
         var json = ValidVector
             .Replace("\"armies\": 4", $"\"armies\": {armies}", StringComparison.Ordinal)
-            .Replace("\"result\": \"accepted\"", "\"result\": \"rejected\"", StringComparison.Ordinal)
+            .Replace("\"result\": \"accepted\"", "\"result\": \"rejected\"", StringComparison.Ordinal);
         json = Regex.Replace(
             json,
             @",\s*""event"":\s*\{[^{}]*\}",
