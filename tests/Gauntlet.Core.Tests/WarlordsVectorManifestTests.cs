@@ -113,6 +113,22 @@ public sealed class WarlordsVectorManifestTests
     }
 
     [Fact]
+    public void Rejects_duplicate_properties_inside_golden_event_and_snapshot_data()
+    {
+        var duplicateEvent = ValidVector.Replace(
+            "\"ruleId\": \"combat.seeded-d6-strength-comparison\"",
+            "\"ruleId\": \"combat.seeded-d6-strength-comparison\", \"ruleId\": \"tampered\"",
+            StringComparison.Ordinal);
+        Assert.Throws<FormatException>(() => Parse(duplicateEvent));
+
+        var duplicateSnapshot = ValidVector.Replace(
+            "\"activeKingdom\": \"Crimson\"",
+            "\"activeKingdom\": \"Crimson\", \"activeKingdom\": \"Azure\"",
+            StringComparison.Ordinal);
+        Assert.Throws<FormatException>(() => Parse(duplicateSnapshot));
+    }
+
+    [Fact]
     public void Rejects_unknown_command_kind_and_invalid_march_count()
     {
         var kind = ValidVector.Replace("\"kind\": \"march\"", "\"kind\": \"executeScript\"", StringComparison.Ordinal);
