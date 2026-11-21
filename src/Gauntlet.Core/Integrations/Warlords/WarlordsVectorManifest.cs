@@ -16,9 +16,13 @@ public sealed record WarlordsVectorManifest(
     IReadOnlyList<WarlordsVectorCommand> Commands,
     JsonElement ExpectedFinalSnapshot)
 {
+    /// <summary>Only this vector envelope version is accepted.</summary>
     public const int SupportedSchemaVersion = 1;
+    /// <summary>Stable key for the current Warlords starter map.</summary>
     public const string SupportedScenarioKey = "four-kingdoms";
+    /// <summary>Supported version of the starter scenario.</summary>
     public const int SupportedScenarioVersion = 1;
+    /// <summary>Exact rules identity supported by this adapter.</summary>
     public const string SupportedRulesVersion = "warlords-four-kingdoms/1";
 
     /// <summary>Parses and validates the stable v1 fixture envelope. Domain event and snapshot bodies remain opaque JSON data.</summary>
@@ -33,12 +37,11 @@ public sealed record WarlordsVectorManifest(
 
         var root = document.RootElement;
         RequireKind(root, JsonValueKind.Object, "vector");
-        RejectDuplicateProperties(root, "vector");
+        RejectDuplicatePropertiesRecursively(root, "vector");
 
         var id = RequiredString(root, "id");
         var schemaVersion = RequiredInt32(root, "schemaVersion");
         var scenario = RequiredObject(root, "scenario");
-        RejectDuplicateProperties(scenario, "scenario");
         var scenarioKey = RequiredString(scenario, "key");
         var scenarioVersion = RequiredInt32(scenario, "version");
         var rulesVersion = RequiredString(root, "rulesVersion");
@@ -65,11 +68,9 @@ public sealed record WarlordsVectorManifest(
         foreach (var item in commandsElement.EnumerateArray())
         {
             RequireKind(item, JsonValueKind.Object, "command");
-            RejectDuplicateProperties(item, "command");
             var sequence = RequiredInt32(item, "sequence");
             var kind = RequiredString(item, "kind");
             var expected = RequiredObject(item, "expected");
-            RejectDuplicateProperties(expected, "command expected result");
 
             if (sequence < 1 || !sequences.Add(sequence))
                 throw Invalid($"Command sequence '{sequence}' is invalid or duplicated.");
@@ -159,13 +160,23 @@ public sealed record WarlordsVectorManifest(
             throw Invalid($"'{name}' must be a JSON {kind}.");
     }
 
-    private static void RejectDuplicateProperties(JsonElement value, string name)
+    private static void RejectDuplicatePropertiesRecursively(JsonElement value, string path)
     {
-        var seen = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var property in value.EnumerateObject())
+        if (value.ValueKind == JsonValueKind.Object)
         {
-            if (!seen.Add(property.Name))
-                throw Invalid($"'{name}' contains duplicate property '{property.Name}'.");
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var property in value.EnumerateObject())
+            {
+                if (!seen.Add(property.Name))
+                    throw Invalid($"'{path}' contains duplicate property '{property.Name}'.");
+                RejectDuplicatePropertiesRecursively(property.Value, $"{path}.{property.Name}");
+            }
+        }
+        else if (value.ValueKind == JsonValueKind.Array)
+        {
+            var index = 0;
+            foreach (var item in value.EnumerateArray())
+                RejectDuplicatePropertiesRecursively(item, $"{path}[{index++}]");
         }
     }
 
