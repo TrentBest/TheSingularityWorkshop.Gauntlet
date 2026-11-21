@@ -27,7 +27,7 @@ The parser deliberately does not reinterpret combat, turns, territory ownership,
 
 ## Campaign integration status
 
-<badge>Data contract parser implemented</badge>
+**Status:** v1 data-contract parser and malformed-input tests are implemented; campaign execution is not enabled.
 
 This is not candidate execution and does not establish a campaign pass. The complete Experiences fixture corpus and pinned source/artifact acquisition are still required before a trusted-fixture campaign can be assembled. The eventual profile must pin the corpus digest and the exact candidate identity.
 
@@ -35,7 +35,7 @@ Candidate replay remains **blocked** until Gauntlet's host-owned isolation adapt
 
 ## Next implementation steps
 
-1. Add parser and malformed-input tests.
+1. Extend parser tests against the first complete Experiences-owned golden vector.
 2. Consume the actual Experiences-owned corpus at a pinned commit/artifact and verify its digest.
 3. Map each vector to trusted campaign probe definitions without duplicating Warlords rules.
 4. Build an evidence/report projection that remains incomplete until qualified host replay exists.
