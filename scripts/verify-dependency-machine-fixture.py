@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""Verify the static dependency-machine SVG is a complete, accessible preview."""
+"""Verify the dependency-machine SVG's state-specific visual and accessibility contracts."""
 from pathlib import Path
 import sys
 
-if len(sys.argv) != 2:
-    raise SystemExit("usage: verify-dependency-machine-fixture.py <svg-path>")
+if len(sys.argv) != 3 or sys.argv[2] not in {"failed", "passed"}:
+    raise SystemExit("usage: verify-dependency-machine-fixture.py <svg-path> <failed|passed>")
 
 path = Path(sys.argv[1])
+expected_state = sys.argv[2]
 svg = path.read_text(encoding="utf-8")
-required = [
+common = [
     "THE GAUNTLET",
     "DEPENDENCY MACHINE",
     "PREVIEW FIXTURE",
@@ -18,19 +19,29 @@ required = [
     "gui-wpf",
     "renderer",
     "physics",
-    "PASSED",
-    "FAILED",
-    "BLOCKED",
-    "GATE HELD",
-    "traveler-flying-helmet",
-    "STRUCK DOWN",
     "pendulum-swing",
     "knight-impact",
     "prefers-reduced-motion",
 ]
-missing = [marker for marker in required if marker not in svg]
+state_specific = {
+    "failed": [
+        "STRUCK DOWN",
+        "traveler-flying-helmet",
+        "GATE HELD",
+        "final-gate-closed",
+        "FAILED",
+        "BLOCKED",
+    ],
+    "passed": [
+        "COURSE CLEARED",
+        "ALL CLEAR",
+        "final-gate-open",
+        "PASSED",
+    ],
+}
+missing = [marker for marker in common + state_specific[expected_state] if marker not in svg]
 if missing:
-    raise SystemExit(f"dependency-machine SVG is missing expected labels: {', '.join(missing)}")
+    raise SystemExit(f"{expected_state} dependency-machine SVG is missing expected labels: {', '.join(missing)}")
 
 for forbidden in ("<script", "foreignObject", "javascript:", "https://"):
     if forbidden in svg:
@@ -40,4 +51,9 @@ namespace = 'xmlns="http://www.w3.org/2000/svg"'
 if "http://" in svg.replace(namespace, ""):
     raise SystemExit("dependency-machine SVG contains an external HTTP reference")
 
-print(f"Verified static dependency-machine preview: {path}")
+if expected_state == "failed" and "final-gate-open" in svg:
+    raise SystemExit("failed dependency-machine fixture must never open the final gate")
+if expected_state == "passed" and "final-gate-closed" in svg:
+    raise SystemExit("passed dependency-machine fixture must open the final gate")
+
+print(f"Verified {expected_state} dependency-machine preview: {path}")
