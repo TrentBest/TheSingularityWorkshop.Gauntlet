@@ -101,7 +101,9 @@ public sealed class DependencyGraphEvaluatorTests
         DependencyStageStatus stageStatus,
         DependencyGraphStatus expected)
     {
-        var graph = Graph(Stage("core", status: stageStatus));
+        var graph = stageStatus == DependencyStageStatus.Blocked
+            ? Graph(Stage("upstream"), Stage("core", ["upstream"], status: stageStatus))
+            : Graph(Stage("core", status: stageStatus));
 
         Assert.Equal(expected, DependencyGraphEvaluator.Evaluate(graph).Status);
     }
