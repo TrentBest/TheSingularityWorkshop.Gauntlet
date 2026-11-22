@@ -70,9 +70,8 @@ public static class DependencyGraphEvaluator
                     continue;
                 if (stage.Status == DependencyStageStatus.Blocked && upstream.Status == DependencyStageStatus.Passed)
                     errors.Add($"Stage '{stage.StageId}' is marked blocked although upstream stage '{upstreamId}' passed.");
-                if (stage.Status is not (DependencyStageStatus.NotYetRun or DependencyStageStatus.Blocked) &&
-                    upstream.Status != DependencyStageStatus.Passed)
-                    errors.Add($"Stage '{stage.StageId}' has started or completed before upstream stage '{upstreamId}' passed.");
+                if (stage.Status != DependencyStageStatus.Blocked && upstream.Status != DependencyStageStatus.Passed)
+                    errors.Add($"Stage '{stage.StageId}' must be blocked until upstream stage '{upstreamId}' passes.");
             }
         }
 
