@@ -24,6 +24,9 @@ required = [
     "GATE HELD",
     "traveler-flying-helmet",
     "STRUCK DOWN",
+    "pendulum-swing",
+    "knight-impact",
+    "prefers-reduced-motion",
 ]
 missing = [marker for marker in required if marker not in svg]
 if missing:
