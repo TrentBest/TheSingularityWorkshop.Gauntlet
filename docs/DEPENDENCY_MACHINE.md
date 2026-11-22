@@ -1,7 +1,7 @@
 # Dependency Machine — staged campaigns and badge projection
 
 **Status:** implementation in progress; versioned graph contracts and the animated multi-stage projection are implemented on draft PR #5.  
-**Related:** [Gauntlet issue #4](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/issues/4), [Badge Specification](BADGE_SPEC.md), [Autonomous Development Pipeline](AUTONOMOUS_DEVELOPMENT_PIPELINE.md).
+**Related:** [Gauntlet issue #4](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/issues/4), [CiAi evidence handoff contract](CIAI_EVIDENCE_HANDOFF.md), [Read-only projection](READ_ONLY_PROJECTION.md), [Badge Specification](BADGE_SPEC.md), [Autonomous Development Pipeline](AUTONOMOUS_DEVELOPMENT_PIPELINE.md).
 
 ## The machine
 
