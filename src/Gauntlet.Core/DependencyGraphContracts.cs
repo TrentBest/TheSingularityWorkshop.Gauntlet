@@ -51,7 +51,9 @@ public sealed record DependencyStageEvidence(
     string RunId,
     string ReportDigest,
     string ProviderId,
-    DependencyEvidenceState ValidationState);
+    DependencyEvidenceState ValidationState,
+    string? EvidenceBundleDigest = null,
+    string? EvidenceReference = null);
 
 /// <summary>One dependency node and its read-only status projection.</summary>
 public sealed record DependencyStage
