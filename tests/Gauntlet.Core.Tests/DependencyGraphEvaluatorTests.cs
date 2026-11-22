@@ -119,17 +119,36 @@ public sealed class DependencyGraphEvaluatorTests
     }
 
     [Fact]
+    public void Snapshot_digest_is_order_independent_but_detects_content_mutation()
+    {
+        var first = Graph(Stage("b"), Stage("a"));
+        var reordered = Graph(Stage("a"), Stage("b"));
+        var tampered = first with
+        {
+            Stages = first.Stages.Select(stage => stage.StageId == "a"
+                ? stage with { Status = DependencyStageStatus.Failed, Evidence = new DependencyStageEvidence("standard", 1, Digest, "run-a", Digest, "trusted-provider", DependencyEvidenceState.Accepted) }
+                : stage).ToArray()
+        };
+
+        Assert.Equal(first.SnapshotDigest, reordered.SnapshotDigest);
+        Assert.True(DependencyGraphSnapshotIntegrity.Verify(first));
+        Assert.False(DependencyGraphSnapshotIntegrity.Verify(tampered));
+        Assert.False(DependencyGraphEvaluator.Validate(tampered).IsValid);
+    }
+
+    [Fact]
     public void Snapshot_copies_stage_collection()
     {
         var stages = new List<DependencyStage> { Stage("core") };
-        var graph = new DependencyGraphSnapshot(1, "snapshot-1", Digest, "pipeline-attempt-1", stages);
+        var graph = DependencyGraphSnapshotIntegrity.Seal(new DependencyGraphSnapshot(1, "snapshot-1", Digest, "pipeline-attempt-1", stages));
         stages.Clear();
 
         Assert.Single(graph.Stages);
     }
 
     private static DependencyGraphSnapshot Graph(params DependencyStage[] stages) =>
-        new(1, "snapshot-1", Digest, "pipeline-attempt-1", stages);
+        DependencyGraphSnapshotIntegrity.Seal(
+            new DependencyGraphSnapshot(1, "snapshot-1", Digest, "pipeline-attempt-1", stages));
 
     private static DependencyStage Stage(
         string id,
