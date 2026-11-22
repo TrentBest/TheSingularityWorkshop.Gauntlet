@@ -35,6 +35,7 @@ Every dependency stage carries enough identity to prevent a green result driftin
 - Gauntlet campaign profile ID/version/digest, run ID/attempt, and report digest.
 - CiAi evidence-bundle digest and HTTPS evidence reference; accepted evidence must bind both.
 - Evidence provider identity and trust/validation outcome.
+- Exact `PipelineAttemptId` and per-stage `StageAttemptId` copied into the accepted evidence binding and compared ordinally with the containing snapshot/stage. Provider workflow `RunId`/`RunAttempt` remain separate identities.
 - Attempt identity and snapshot version.
 
 A mutable branch name is a locator, never candidate identity. A stage result is stale when any required source, artifact, profile, attempt, or graph identity no longer matches the pipeline snapshot. The stage-level `Required` flag controls whether that stage contributes directly to the aggregate gate; it does not soften or remove any declared dependency edge. An optional upstream stage must still pass before a downstream stage that declares it can start. Snapshot digests use `DependencyGraphSnapshotIntegrity.SerializeCanonical`: camelCase `System.Text.Json`, no indentation, declaration-order object properties, numeric enum values, ordinally sorted stage arrays, and ordinally sorted upstream IDs. SHA-256 of those UTF-8 bytes is represented as `sha256:` plus 64 lowercase hexadecimal characters. The digest detects mutation but is not an issuer signature.
@@ -93,7 +94,7 @@ Overall state is an aggregation, not a replacement for stage states:
 - Passed only when every required stage is passed for the same graph snapshot and compatible pipeline attempt.
 - Not yet run when the pipeline has not started.
 
-The version-1 projection contract uses this deterministic precedence when required stages have simultaneous states: **Invalid → Untrusted → Incomplete → Failed → Blocked → Running → Not yet run → Passed**. Evidence-quality states outrank operational outcomes, so a red failure cannot disguise invalid or untrusted evidence. Unknown enum values, malformed digests, duplicate/missing graph identities, and cycles fail closed as Invalid.
+The version-2 projection contract adds explicit pipeline-attempt and stage-attempt bindings to accepted evidence; version-1 snapshots are rejected rather than silently interpreted under the expanded wire contract. The version-2 projection contract uses this deterministic precedence when required stages have simultaneous states: **Invalid → Untrusted → Incomplete → Failed → Blocked → Running → Not yet run → Passed**. Evidence-quality states outrank operational outcomes, so a red failure cannot disguise invalid or untrusted evidence. Unknown enum values, malformed digests, duplicate/missing graph identities, and cycles fail closed as Invalid.
 
 ## Animation and accessibility
 
@@ -107,8 +108,8 @@ The version-1 projection contract uses this deterministic precedence when requir
 
 ## Implementation sequence
 
-1. **Implemented in PR #5:** version-1 graph/stage contracts, candidate/evidence-bundle identity checks, canonical snapshot digest verification, DAG validation, deterministic topological order, prerequisite eligibility, and fail-closed aggregate projection.
-2. Continue expanding tests for retries, stale graph snapshots, and mixed-state precedence. Current tests cover DAG ordering, cycles, missing/duplicate nodes, malformed evidence, evidence-bundle binding, joins, independent branches, premature starts, optional-only graph rejection, and snapshot tamper detection.
+1. **Implemented in PR #5:** version-2 graph/stage contracts, candidate/evidence-bundle identity checks, exact pipeline/stage-attempt evidence binding, canonical snapshot digest verification, DAG validation, deterministic topological order, prerequisite eligibility, and fail-closed aggregate projection.
+2. Continue expanding tests for retries, stale graph snapshots, and mixed-state precedence. Current tests cover DAG ordering, cycles, missing/duplicate nodes, malformed evidence, evidence-bundle binding, pipeline/stage-attempt mismatch and replay rejection, joins, independent branches, premature starts, optional-only graph rejection, and snapshot tamper detection.
 3. **Implemented in PR #5:** deterministic tier/row layout and a snapshot-driven multi-stage GUI.SVG storyboard with dependency tracks, distinct mechanical archetypes, stage labels, a single advancing knight marker, a knocked-down failure pose with a separated helmet, aggregate gate, and preview-only fixtures for both a failed/blocked path and an all-passed path.
 4. **Implemented in PR #5:** declarative per-stage pendulum, gear, crusher, and trap choreography; knight advance/celebration/failure motion; helmet scatter; and a `prefers-reduced-motion` static fallback.
 5. Connect a read-only CiAi projection only after CiAi independently validates each stage's source/artifact, required workflow run and attempt, tested checkout SHA, workflow definition and job-log evidence, Gauntlet profile/report, and host receipt/provider trust. The evidence bundle digest/reference must point to that validated bundle.
