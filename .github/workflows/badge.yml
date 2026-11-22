@@ -60,13 +60,16 @@ jobs:
           dotnet run --no-build --project "$project" --configuration Release -- --state passed --candidate-sha preview-passed --run-id fixture-passed --score 98 --average 84 --delta 14 --survived 5 --failed 2 --output artifacts/gauntlet-passed.svg
           dotnet run --no-build --project "$project" --configuration Release -- --state blocked --candidate-sha preview-blocked --run-id fixture-blocked --output artifacts/gauntlet-blocked.svg
           machine=TheSingularityWorkshop.Gauntlet/samples/DependencyMachineBadge/DependencyMachineBadge.csproj
-          dotnet run --no-build --project "$machine" --configuration Release -- --input TheSingularityWorkshop.Gauntlet/samples/DependencyMachineBadge/fixtures/parallel-join.json --output artifacts/dependency-machine.svg
+          dotnet run --no-build --project "$machine" --configuration Release -- --input TheSingularityWorkshop.Gauntlet/samples/DependencyMachineBadge/fixtures/parallel-join.json --output artifacts/dependency-machine-failed.svg
+          dotnet run --no-build --project "$machine" --configuration Release -- --input TheSingularityWorkshop.Gauntlet/samples/DependencyMachineBadge/fixtures/all-passed.json --output artifacts/dependency-machine-passed.svg
 
       - name: Verify generated badge contracts
         run: python3 TheSingularityWorkshop.Gauntlet/scripts/verify-badge-fixtures.py artifacts
 
       - name: Verify dependency-machine preview fixture
-        run: python3 TheSingularityWorkshop.Gauntlet/scripts/verify-dependency-machine-fixture.py artifacts/dependency-machine.svg
+        run: |
+          python3 TheSingularityWorkshop.Gauntlet/scripts/verify-dependency-machine-fixture.py artifacts/dependency-machine-failed.svg failed
+          python3 TheSingularityWorkshop.Gauntlet/scripts/verify-dependency-machine-fixture.py artifacts/dependency-machine-passed.svg passed
 
       - name: Upload generated GUI.SVG badge fixtures
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
