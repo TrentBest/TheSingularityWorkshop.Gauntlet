@@ -43,7 +43,7 @@ public static class DependencyGraphEvaluator
             if (!byId.TryAdd(stage.StageId, stage))
                 errors.Add($"Duplicate stage ID: {stage.StageId}.");
 
-            ValidateStage(stage, errors);
+            ValidateStage(stage, snapshot.PipelineAttemptId, errors);
         }
 
         foreach (var stage in byId.Values)
@@ -133,7 +133,7 @@ public static class DependencyGraphEvaluator
         return stage.UpstreamStageIds.All(id => byId[id].Status == DependencyStageStatus.Passed);
     }
 
-    private static void ValidateStage(DependencyStage stage, List<string> errors)
+    private static void ValidateStage(DependencyStage stage, string pipelineAttemptId, List<string> errors)
     {
         if (stage.Candidate is null)
         {
@@ -160,7 +160,7 @@ public static class DependencyGraphEvaluator
             errors.Add($"Stage '{stage.StageId}' has an unknown status value.");
 
         var terminalEvidenceRequired = stage.Status is DependencyStageStatus.Passed or DependencyStageStatus.Failed;
-        if (terminalEvidenceRequired && !HasAcceptedEvidence(stage.Evidence))
+        if (terminalEvidenceRequired && !HasAcceptedEvidence(stage.Evidence, pipelineAttemptId, stage.AttemptId))
             errors.Add($"Terminal stage '{stage.StageId}' requires accepted, fully bound campaign evidence.");
         if (stage.Evidence is { } evidence)
         {
@@ -171,15 +171,22 @@ public static class DependencyGraphEvaluator
                 if (string.IsNullOrWhiteSpace(evidence.ProfileId) || evidence.ProfileVersion < 1 ||
                     !IsSha256(evidence.ProfileDigest) || string.IsNullOrWhiteSpace(evidence.RunId) ||
                     !IsSha256(evidence.ReportDigest) || string.IsNullOrWhiteSpace(evidence.ProviderId) ||
-                    !IsSha256(evidence.EvidenceBundleDigest) || !IsHttpsReference(evidence.EvidenceReference))
+                    !IsSha256(evidence.EvidenceBundleDigest) || !IsHttpsReference(evidence.EvidenceReference) ||
+                    !string.Equals(evidence.PipelineAttemptId, pipelineAttemptId, StringComparison.Ordinal) ||
+                    !string.Equals(evidence.StageAttemptId, stage.AttemptId, StringComparison.Ordinal))
                     errors.Add($"Stage '{stage.StageId}' has incomplete accepted evidence identity.");
             }
         }
     }
 
-    private static bool HasAcceptedEvidence(DependencyStageEvidence? evidence) =>
+    private static bool HasAcceptedEvidence(
+        DependencyStageEvidence? evidence,
+        string pipelineAttemptId,
+        string stageAttemptId) =>
         evidence is not null &&
         evidence.ValidationState == DependencyEvidenceState.Accepted &&
+        string.Equals(evidence.PipelineAttemptId, pipelineAttemptId, StringComparison.Ordinal) &&
+        string.Equals(evidence.StageAttemptId, stageAttemptId, StringComparison.Ordinal) &&
         !string.IsNullOrWhiteSpace(evidence.ProfileId) &&
         evidence.ProfileVersion > 0 &&
         IsSha256(evidence.ProfileDigest) &&
