@@ -6,39 +6,154 @@
   "stages": [
     {
       "stageId": "fsm-api",
-      "candidate": { "repository": "TrentBest/FSM_API", "packageId": "FSM_API", "sourceCommitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "artifactDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1", "manifestDigest": null },
-      "upstreamStageIds": [], "required": true, "attemptId": "preview-fsm-api", "status": 2,
-      "evidence": { "profileId": "preview", "profileVersion": 1, "profileDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "runId": "preview-fsm-api", "reportDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2", "providerId": "preview-only", "validationState": 2 }
+      "candidate": {
+        "repository": "TrentBest/FSM_API",
+        "packageId": "FSM_API",
+        "sourceCommitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "artifactDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1",
+        "manifestDigest": null
+      },
+      "upstreamStageIds": [],
+      "required": true,
+      "attemptId": "preview-fsm-api",
+      "status": 2,
+      "evidence": {
+        "profileId": "preview",
+        "profileVersion": 1,
+        "profileDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "runId": "preview-fsm-api",
+        "reportDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2",
+        "providerId": "preview-only",
+        "validationState": 2,
+        "evidenceBundleDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "evidenceReference": "https://example.invalid/gauntlet-preview/fsm-api"
+      }
     },
     {
       "stageId": "gui-core",
-      "candidate": { "repository": "TrentBest/TheSingularityWorkshop.GUI", "packageId": "GUI.Core", "sourceCommitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "artifactDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3", "manifestDigest": null },
-      "upstreamStageIds": ["fsm-api"], "required": true, "attemptId": "preview-gui-core", "status": 2,
-      "evidence": { "profileId": "preview", "profileVersion": 1, "profileDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "runId": "preview-gui-core", "reportDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4", "providerId": "preview-only", "validationState": 2 }
+      "candidate": {
+        "repository": "TrentBest/TheSingularityWorkshop.GUI",
+        "packageId": "GUI.Core",
+        "sourceCommitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "artifactDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3",
+        "manifestDigest": null
+      },
+      "upstreamStageIds": [
+        "fsm-api"
+      ],
+      "required": true,
+      "attemptId": "preview-gui-core",
+      "status": 2,
+      "evidence": {
+        "profileId": "preview",
+        "profileVersion": 1,
+        "profileDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "runId": "preview-gui-core",
+        "reportDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4",
+        "providerId": "preview-only",
+        "validationState": 2,
+        "evidenceBundleDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "evidenceReference": "https://example.invalid/gauntlet-preview/gui-core"
+      }
     },
     {
       "stageId": "serialization",
-      "candidate": { "repository": "TrentBest/FSM_Serialization", "packageId": "FSM_Serialization", "sourceCommitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "artifactDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa5", "manifestDigest": null },
-      "upstreamStageIds": ["fsm-api"], "required": true, "attemptId": "preview-serialization", "status": 2,
-      "evidence": { "profileId": "preview", "profileVersion": 1, "profileDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "runId": "preview-serialization", "reportDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa6", "providerId": "preview-only", "validationState": 2 }
+      "candidate": {
+        "repository": "TrentBest/FSM_Serialization",
+        "packageId": "FSM_Serialization",
+        "sourceCommitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "artifactDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa5",
+        "manifestDigest": null
+      },
+      "upstreamStageIds": [
+        "fsm-api"
+      ],
+      "required": true,
+      "attemptId": "preview-serialization",
+      "status": 2,
+      "evidence": {
+        "profileId": "preview",
+        "profileVersion": 1,
+        "profileDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "runId": "preview-serialization",
+        "reportDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa6",
+        "providerId": "preview-only",
+        "validationState": 2,
+        "evidenceBundleDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "evidenceReference": "https://example.invalid/gauntlet-preview/serialization"
+      }
     },
     {
       "stageId": "gui-wpf",
-      "candidate": { "repository": "TrentBest/TheSingularityWorkshop.GUI", "packageId": "GUI.WPF", "sourceCommitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "artifactDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa7", "manifestDigest": null },
-      "upstreamStageIds": ["gui-core"], "required": true, "attemptId": "preview-gui-wpf", "status": 3,
-      "evidence": { "profileId": "preview", "profileVersion": 1, "profileDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "runId": "preview-gui-wpf", "reportDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa8", "providerId": "preview-only", "validationState": 2 }
+      "candidate": {
+        "repository": "TrentBest/TheSingularityWorkshop.GUI",
+        "packageId": "GUI.WPF",
+        "sourceCommitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "artifactDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa7",
+        "manifestDigest": null
+      },
+      "upstreamStageIds": [
+        "gui-core"
+      ],
+      "required": true,
+      "attemptId": "preview-gui-wpf",
+      "status": 3,
+      "evidence": {
+        "profileId": "preview",
+        "profileVersion": 1,
+        "profileDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "runId": "preview-gui-wpf",
+        "reportDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa8",
+        "providerId": "preview-only",
+        "validationState": 2,
+        "evidenceBundleDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "evidenceReference": "https://example.invalid/gauntlet-preview/gui-wpf"
+      }
     },
     {
       "stageId": "renderer",
-      "candidate": { "repository": "TrentBest/TheSingularityWorkshop.Renderer", "packageId": "Renderer", "sourceCommitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "artifactDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa9", "manifestDigest": null },
-      "upstreamStageIds": ["gui-wpf", "serialization"], "required": true, "attemptId": "preview-renderer", "status": 4,
+      "candidate": {
+        "repository": "TrentBest/TheSingularityWorkshop.Renderer",
+        "packageId": "Renderer",
+        "sourceCommitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "artifactDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa9",
+        "manifestDigest": null
+      },
+      "upstreamStageIds": [
+        "gui-wpf",
+        "serialization"
+      ],
+      "required": true,
+      "attemptId": "preview-renderer",
+      "status": 4,
       "evidence": null
     },
     {
       "stageId": "physics",
-      "candidate": { "repository": "TrentBest/TheSingularityWorkshop.Physics", "packageId": "Physics", "sourceCommitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "artifactDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa10", "manifestDigest": null },
-      "upstreamStageIds": ["fsm-api"], "required": true, "attemptId": "preview-physics", "status": 2,
-      "evidence": { "profileId": "preview", "profileVersion": 1, "profileDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "runId": "preview-physics", "reportDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa11", "providerId": "preview-only", "validationState": 2 }
+      "candidate": {
+        "repository": "TrentBest/TheSingularityWorkshop.Physics",
+        "packageId": "Physics",
+        "sourceCommitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "artifactDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa10",
+        "manifestDigest": null
+      },
+      "upstreamStageIds": [
+        "fsm-api"
+      ],
+      "required": true,
+      "attemptId": "preview-physics",
+      "status": 2,
+      "evidence": {
+        "profileId": "preview",
+        "profileVersion": 1,
+        "profileDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "runId": "preview-physics",
+        "reportDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa11",
+        "providerId": "preview-only",
+        "validationState": 2,
+        "evidenceBundleDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "evidenceReference": "https://example.invalid/gauntlet-preview/physics"
+      }
     }
   ]
 }
