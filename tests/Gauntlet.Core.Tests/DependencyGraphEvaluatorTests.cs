@@ -119,6 +119,14 @@ public sealed class DependencyGraphEvaluatorTests
     }
 
     [Fact]
+    public void Rejects_graphs_without_required_stages()
+    {
+        var graph = Graph(Stage("optional") with { Required = false });
+
+        Assert.False(DependencyGraphEvaluator.Validate(graph).IsValid);
+    }
+
+    [Fact]
     public void Snapshot_digest_is_order_independent_but_detects_content_mutation()
     {
         var first = Graph(Stage("b"), Stage("a"));
