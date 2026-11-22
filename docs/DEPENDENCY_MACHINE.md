@@ -37,7 +37,7 @@ Every dependency stage carries enough identity to prevent a green result driftin
 - Evidence provider identity and trust/validation outcome.
 - Attempt identity and snapshot version.
 
-A mutable branch name is a locator, never candidate identity. A stage result is stale when any required source, artifact, profile, attempt, or graph identity no longer matches the pipeline snapshot. Snapshot digests use `DependencyGraphSnapshotIntegrity.SerializeCanonical`: camelCase `System.Text.Json`, no indentation, declaration-order object properties, numeric enum values, ordinally sorted stage arrays, and ordinally sorted upstream IDs. SHA-256 of those UTF-8 bytes is represented as `sha256:` plus 64 lowercase hexadecimal characters. The digest detects mutation but is not an issuer signature.
+A mutable branch name is a locator, never candidate identity. A stage result is stale when any required source, artifact, profile, attempt, or graph identity no longer matches the pipeline snapshot. The stage-level `Required` flag controls whether that stage contributes directly to the aggregate gate; it does not soften or remove any declared dependency edge. An optional upstream stage must still pass before a downstream stage that declares it can start. Snapshot digests use `DependencyGraphSnapshotIntegrity.SerializeCanonical`: camelCase `System.Text.Json`, no indentation, declaration-order object properties, numeric enum values, ordinally sorted stage arrays, and ordinally sorted upstream IDs. SHA-256 of those UTF-8 bytes is represented as `sha256:` plus 64 lowercase hexadecimal characters. The digest detects mutation but is not an issuer signature.
 
 ### Stage states
 
@@ -47,7 +47,7 @@ A mutable branch name is a locator, never candidate identity. A stage result is 
 | Running | A current attempt is in progress | Stage operates; knight approaches or enters the mechanism |
 | Passed | Required evidence for this exact candidate is validated and policy passed | Mechanism safely releases the knight |
 | Failed | A validated campaign or required gate failed | Stage-specific consequence; descendants become blocked |
-| Blocked | One or more required upstream stages did not pass | Gate locks; knight waits before the stage |
+| Blocked | One or more declared upstream prerequisites did not pass | Gate locks; knight waits before the stage |
 | Incomplete | Required evidence is missing or the attempt did not complete | Mechanism pauses; never show success |
 | Invalid | Evidence is malformed, inconsistent, or mismatched | Warning state; do not animate a pass/fail outcome |
 | Untrusted | Provider, signature, receipt, or trust chain is not accepted | Locked stage with explicit trust warning |
@@ -58,7 +58,7 @@ Not-yet-run is distinct from blocked: the former is eligible and waiting for sch
 
 - CiAi consumes an explicit directed acyclic graph (DAG); display order is not dependency order.
 - Independent branches may run in parallel.
-- A join stage becomes eligible only when every required incoming dependency has passed.
+- A join stage becomes eligible only when every declared incoming dependency has passed. Every declared edge is a hard scheduling prerequisite, even when its upstream stage is optional for aggregate gate participation.
 - A failed stage blocks its descendants, but does not retroactively fail unrelated branches.
 - A retry is a new attempt with its own immutable evidence. Never overwrite an earlier failed report with a later pass.
 - The graph snapshot and digest are pinned to the pipeline attempt. A graph edit creates a new snapshot; it cannot silently rewrite an existing run.
