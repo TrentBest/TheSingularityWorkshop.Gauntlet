@@ -93,7 +93,7 @@ Overall state is an aggregation, not a replacement for stage states:
 - Passed only when every required stage is passed for the same graph snapshot and compatible pipeline attempt.
 - Not yet run when the pipeline has not started.
 
-The precise precedence among simultaneous evidence-quality states must be frozen in a versioned contract before production use. Unknown enum values fail closed.
+The version-1 projection contract uses this deterministic precedence when required stages have simultaneous states: **Invalid → Untrusted → Incomplete → Failed → Blocked → Running → Not yet run → Passed**. Evidence-quality states outrank operational outcomes, so a red failure cannot disguise invalid or untrusted evidence. Unknown enum values, malformed digests, duplicate/missing graph identities, and cycles fail closed as Invalid.
 
 ## Animation and accessibility
 
@@ -107,8 +107,8 @@ The precise precedence among simultaneous evidence-quality states must be frozen
 
 ## Implementation sequence
 
-1. Freeze the versioned dependency graph and stage projection wire contract with strict identity/provenance validation.
-2. Add pure aggregation logic and tests for DAG ordering, parallel branches, joins, descendants blocked by failure, retries, stale graph snapshots, and unknown states.
+1. **Implemented in PR #5:** version-1 graph/stage contracts, candidate/evidence identity checks, DAG validation, deterministic topological order, prerequisite eligibility, and fail-closed aggregate projection.
+2. Expand tests for retries, stale graph snapshots, optional stages, malformed evidence, and every mixed-state precedence combination; CiAi remains responsible for cryptographic/provider trust and digest recomputation.
 3. Add a stable stage-layout model and a static multi-stage storyboard.
 4. Add per-stage status fixtures and reduced-motion/accessibility checks.
 5. Add deterministic mechanical choreography per stage archetype.
