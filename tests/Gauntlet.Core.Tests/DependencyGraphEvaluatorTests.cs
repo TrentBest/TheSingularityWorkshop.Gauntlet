@@ -55,6 +55,18 @@ public sealed class DependencyGraphEvaluatorTests
     }
 
     [Fact]
+    public void Accepted_evidence_requires_an_evidence_bundle_digest_and_reference()
+    {
+        var evidence = Stage("core", status: DependencyStageStatus.Passed).Evidence!;
+        var graph = Graph(Stage("core", status: DependencyStageStatus.Passed) with
+        {
+            Evidence = evidence with { EvidenceBundleDigest = null, EvidenceReference = null }
+        });
+
+        Assert.False(DependencyGraphEvaluator.Validate(graph).IsValid);
+    }
+
+    [Fact]
     public void Rejects_a_downstream_attempt_started_before_its_prerequisite_passes()
     {
         var graph = Graph(
@@ -134,7 +146,7 @@ public sealed class DependencyGraphEvaluatorTests
         var tampered = first with
         {
             Stages = first.Stages.Select(stage => stage.StageId == "a"
-                ? stage with { Status = DependencyStageStatus.Failed, Evidence = new DependencyStageEvidence("standard", 1, Digest, "run-a", Digest, "trusted-provider", DependencyEvidenceState.Accepted) }
+                ? stage with { Status = DependencyStageStatus.Failed, Evidence = new DependencyStageEvidence("standard", 1, Digest, "run-a", Digest, "trusted-provider", DependencyEvidenceState.Accepted, Digest, "https://example.invalid/evidence/run-a") }
                 : stage).ToArray()
         };
 
@@ -165,7 +177,7 @@ public sealed class DependencyGraphEvaluatorTests
         DependencyStageStatus status = DependencyStageStatus.NotYetRun)
     {
         var evidence = status is DependencyStageStatus.Passed or DependencyStageStatus.Failed
-            ? new DependencyStageEvidence("standard", 1, Digest, $"run-{id}", Digest, "trusted-provider", DependencyEvidenceState.Accepted)
+            ? new DependencyStageEvidence("standard", 1, Digest, $"run-{id}", Digest, "trusted-provider", DependencyEvidenceState.Accepted, Digest, $"https://example.invalid/evidence/run-{id}")
             : null;
 
         return new DependencyStage(
