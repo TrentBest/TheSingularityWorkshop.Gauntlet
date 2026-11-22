@@ -19,7 +19,7 @@ public sealed class DependencyGraphReadOnlyProjectionTests
         var projection = DependencyGraphReadOnlyProjection.Create(graph);
 
         Assert.True(projection.IsStructurallyValid);
-        Assert.Equal(DependencyGraphStatus.NotYetRun, projection.Status);
+        Assert.Equal(DependencyGraphStatus.Blocked, projection.Status);
         Assert.Equal(new[] { "core", "left", "right", "join" }, projection.Stages.Select(x => x.StageId));
         Assert.All(projection.Stages, stage => Assert.Empty(stage.UpstreamStageIds.Where(id => id == null)));
     }
