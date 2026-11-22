@@ -1,6 +1,6 @@
 # Dependency Machine — staged campaigns and badge projection
 
-**Status:** design baseline; implementation is intentionally staged.  
+**Status:** implementation in progress; versioned graph contracts and the animated multi-stage projection are implemented on draft PR #5.  
 **Related:** [Gauntlet issue #4](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/issues/4), [Badge Specification](BADGE_SPEC.md), [Autonomous Development Pipeline](AUTONOMOUS_DEVELOPMENT_PIPELINE.md).
 
 ## The machine
@@ -34,10 +34,12 @@ Every dependency stage carries enough identity to prevent a green result driftin
 - Declared upstream stage IDs.
 - Required campaign profile ID and version.
 - Gauntlet run ID and report digest.
+- Gauntlet campaign profile ID/version/digest, run ID/attempt, and report digest.
+- CiAi evidence-bundle digest and HTTPS evidence reference; accepted evidence must bind both.
 - Evidence provider identity and trust/validation outcome.
 - Attempt identity and snapshot version.
 
-A mutable branch name is a locator, never candidate identity. A stage result is stale when any required source, artifact, profile, attempt, or graph identity no longer matches the pipeline snapshot. Digests use the existing Gauntlet canonical form `sha256:` followed by 64 lowercase hexadecimal characters.
+A mutable branch name is a locator, never candidate identity. A stage result is stale when any required source, artifact, profile, attempt, or graph identity no longer matches the pipeline snapshot. Snapshot digests use `DependencyGraphSnapshotIntegrity.SerializeCanonical`: camelCase `System.Text.Json`, no indentation, declaration-order object properties, numeric enum values, ordinally sorted stage arrays, and ordinally sorted upstream IDs. SHA-256 of those UTF-8 bytes is represented as `sha256:` plus 64 lowercase hexadecimal characters. The digest detects mutation but is not an issuer signature.
 
 ### Stage states
 
@@ -107,11 +109,11 @@ The version-1 projection contract uses this deterministic precedence when requir
 
 ## Implementation sequence
 
-1. **Implemented in PR #5:** version-1 graph/stage contracts, candidate/evidence identity checks, DAG validation, deterministic topological order, prerequisite eligibility, and fail-closed aggregate projection.
-2. Expand tests for retries, stale graph snapshots, optional stages, malformed evidence, and every mixed-state precedence combination; CiAi remains responsible for cryptographic/provider trust and digest recomputation.
+1. **Implemented in PR #5:** version-1 graph/stage contracts, candidate/evidence-bundle identity checks, canonical snapshot digest verification, DAG validation, deterministic topological order, prerequisite eligibility, and fail-closed aggregate projection.
+2. Continue expanding tests for retries, stale graph snapshots, and mixed-state precedence. Current tests cover DAG ordering, cycles, missing/duplicate nodes, malformed evidence, evidence-bundle binding, joins, independent branches, premature starts, optional-only graph rejection, and snapshot tamper detection.
 3. **Implemented in PR #5:** deterministic tier/row layout and a snapshot-driven multi-stage GUI.SVG storyboard with dependency tracks, distinct mechanical archetypes, stage labels, a single advancing knight marker, a knocked-down failure pose with a separated helmet, aggregate gate, and a preview-only fixture watermark.
 4. **Implemented in PR #5:** declarative per-stage pendulum, gear, crusher, and trap choreography; knight advance/celebration/failure motion; helmet scatter; and a `prefers-reduced-motion` static fallback.
-5. Connect a read-only CiAi projection only after CiAi independently validates each stage's source, artifact, profile, report, provider, and attempt binding.
+5. Connect a read-only CiAi projection only after CiAi independently validates each stage's source/artifact, required workflow run and attempt, tested checkout SHA, workflow definition and job-log evidence, Gauntlet profile/report, and host receipt/provider trust. The evidence bundle digest/reference must point to that validated bundle.
 6. Enable downstream scheduling only through CiAi's separately tested policy gates; never from badge output.
 
 ## Explicit non-goals
