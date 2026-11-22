@@ -1,10 +1,11 @@
+using Xunit;
 using TheSingularityWorkshop.Gauntlet;
 
 namespace Gauntlet.Core.Tests;
 
 public sealed class DependencyGraphEvaluatorTests
 {
-    private const string Digest = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    private const string Digest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     private const string Commit = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 
     [Fact]
