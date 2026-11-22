@@ -170,7 +170,8 @@ public static class DependencyGraphEvaluator
             {
                 if (string.IsNullOrWhiteSpace(evidence.ProfileId) || evidence.ProfileVersion < 1 ||
                     !IsSha256(evidence.ProfileDigest) || string.IsNullOrWhiteSpace(evidence.RunId) ||
-                    !IsSha256(evidence.ReportDigest) || string.IsNullOrWhiteSpace(evidence.ProviderId))
+                    !IsSha256(evidence.ReportDigest) || string.IsNullOrWhiteSpace(evidence.ProviderId) ||
+                    !IsSha256(evidence.EvidenceBundleDigest) || !IsHttpsReference(evidence.EvidenceReference))
                     errors.Add($"Stage '{stage.StageId}' has incomplete accepted evidence identity.");
             }
         }
@@ -184,7 +185,9 @@ public static class DependencyGraphEvaluator
         IsSha256(evidence.ProfileDigest) &&
         !string.IsNullOrWhiteSpace(evidence.RunId) &&
         IsSha256(evidence.ReportDigest) &&
-        !string.IsNullOrWhiteSpace(evidence.ProviderId);
+        !string.IsNullOrWhiteSpace(evidence.ProviderId) &&
+        IsSha256(evidence.EvidenceBundleDigest) &&
+        IsHttpsReference(evidence.EvidenceReference);
 
     private static List<string> TopologicalOrder(
         IReadOnlyDictionary<string, DependencyStage> stages,
@@ -227,6 +230,13 @@ public static class DependencyGraphEvaluator
 
     private static bool IsCommitSha(string? value) =>
         value is { Length: 40 or 64 } && value.All(Uri.IsHexDigit);
+
+    private static bool IsHttpsReference(string? value) =>
+        Uri.TryCreate(value, UriKind.Absolute, out var uri) &&
+        uri.Scheme == Uri.UriSchemeHttps &&
+        uri.IsDefaultPort &&
+        string.IsNullOrEmpty(uri.UserInfo) &&
+        string.IsNullOrEmpty(uri.Fragment);
 
     private static bool IsSha256(string? value) =>
         value is { Length: 71 } &&
