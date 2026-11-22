@@ -64,15 +64,13 @@ public static class DependencyGraphEvaluator
 
         foreach (var stage in byId.Values)
         {
-            foreach (var upstreamId in stage.UpstreamStageIds ?? [])
-            {
-                if (!byId.TryGetValue(upstreamId, out var upstream))
-                    continue;
-                if (stage.Status == DependencyStageStatus.Blocked && upstream.Status == DependencyStageStatus.Passed)
-                    errors.Add($"Stage '{stage.StageId}' is marked blocked although upstream stage '{upstreamId}' passed.");
-                if (stage.Status != DependencyStageStatus.Blocked && upstream.Status != DependencyStageStatus.Passed)
-                    errors.Add($"Stage '{stage.StageId}' must be blocked until upstream stage '{upstreamId}' passes.");
-            }
+            var prerequisitesPassed = stage.UpstreamStageIds.All(
+                id => byId.TryGetValue(id, out var upstream) && upstream.Status == DependencyStageStatus.Passed);
+
+            if (stage.Status == DependencyStageStatus.Blocked && prerequisitesPassed)
+                errors.Add($"Stage '{stage.StageId}' is marked blocked although every upstream stage passed.");
+            else if (stage.Status != DependencyStageStatus.Blocked && !prerequisitesPassed)
+                errors.Add($"Stage '{stage.StageId}' must be blocked until every upstream stage passes.");
         }
 
         var order = TopologicalOrder(byId, errors);
