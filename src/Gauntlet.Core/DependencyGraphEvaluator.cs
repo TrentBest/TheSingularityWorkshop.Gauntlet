@@ -3,7 +3,7 @@ namespace TheSingularityWorkshop.Gauntlet;
 /// <summary>Pure validation and aggregation for versioned dependency graph projections.</summary>
 /// <remarks>
 /// This type validates projection structure and local evidence bindings. It does not authenticate
-/// providers, verify report signatures, recompute snapshot digests, schedule work, or authorize gates.
+/// providers or verify report signatures. It verifies the deterministic snapshot digest, but does not authenticate its issuer, schedule work, or authorize gates.
 /// Those trust and policy decisions remain with CiAi.
 /// </remarks>
 public static class DependencyGraphEvaluator
