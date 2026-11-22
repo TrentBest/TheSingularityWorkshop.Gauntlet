@@ -173,14 +173,18 @@ DrawKnight(scene, "traveler", travelerX, travelerY, travelerStatus);
 
 // The final bell/drawbridge is a completion symbol, never a release authorization.
 var finishX = 34 + (maxDepth + 1) * 190;
+var gateOpen = evaluation.Status == DependencyGraphStatus.Passed;
 scene.Child("svg-g", "final-drawbridge", gate =>
 {
-    gate.Property("transform", $"translate({finishX} 112)");
+    gate.Property("class", gateOpen ? "final-gate-open" : "final-gate-closed")
+        .Property("transform", $"translate({finishX} 112)");
     gate.Child("svg-rect", "gate-post", post => post.Property("x", "0").Property("y", "-22")
         .Property("width", "4").Property("height", "50").Property("fill", "#94a3b8"));
-    gate.Child("svg-rect", "gate-door", door => door.Property("x", "4").Property("y", "-22")
-        .Property("width", "22").Property("height", "5").Property("fill", aggregateColor));
-    AddText(gate, "finish-label", evaluation.Status == DependencyGraphStatus.Passed ? "ALL CLEAR" : "GATE HELD",
+    gate.Child("svg-rect", "gate-door", door => door.Property("class", "gate-door")
+        .Property("x", "4").Property("y", "-22").Property("width", "22").Property("height", "5")
+        .Property("transform", gateOpen ? "rotate(-70 4 -22)" : "rotate(0 4 -22)")
+        .Property("fill", aggregateColor));
+    AddText(gate, "finish-label", gateOpen ? "ALL CLEAR" : "GATE HELD",
         0, 42, 4.2, aggregateColor, "800");
 });
 AddText(scene, "progress", $"{evaluation.PassedRequiredStages}/{evaluation.TotalRequiredStages} REQUIRED STAGES PASSED",
