@@ -70,7 +70,7 @@ public sealed class DependencyGraphEvaluatorTests
         var graph = Graph(
             Stage("core", status: DependencyStageStatus.Passed),
             Stage("ui", ["core"], status: DependencyStageStatus.NotYetRun),
-            Stage("join", ["core", "ui"], status: DependencyStageStatus.NotYetRun));
+            Stage("join", ["core", "ui"], status: DependencyStageStatus.Blocked));
 
         Assert.True(DependencyGraphEvaluator.IsEligible(graph, "ui"));
         Assert.False(DependencyGraphEvaluator.IsEligible(graph, "join"));
