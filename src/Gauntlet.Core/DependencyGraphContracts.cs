@@ -53,7 +53,9 @@ public sealed record DependencyStageEvidence(
     string ProviderId,
     DependencyEvidenceState ValidationState,
     string? EvidenceBundleDigest = null,
-    string? EvidenceReference = null);
+    string? EvidenceReference = null,
+    string? PipelineAttemptId = null,
+    string? StageAttemptId = null);
 
 /// <summary>One dependency node and its read-only status projection.</summary>
 public sealed record DependencyStage
@@ -96,7 +98,7 @@ public sealed record DependencyGraphSnapshot
 {
     private IReadOnlyList<DependencyStage> _stages = Array.Empty<DependencyStage>();
 
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 2;
 
     public DependencyGraphSnapshot(
         int schemaVersion,
