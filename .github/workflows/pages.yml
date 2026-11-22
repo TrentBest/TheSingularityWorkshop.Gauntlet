@@ -1,0 +1,85 @@
+name: Publish Gauntlet dependency machine to GitHub Pages
+
+on:
+  push:
+    branches: [development]
+    paths:
+      - ".github/workflows/pages.yml"
+      - "docs/DEPENDENCY_MACHINE.md"
+      - "samples/DependencyMachineBadge/**"
+      - "src/Gauntlet.Core/DependencyGraph*.cs"
+      - "scripts/verify-dependency-machine-fixture.py"
+      - "site/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gauntlet-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/development'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Check out Gauntlet
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          path: TheSingularityWorkshop.Gauntlet
+
+      - name: Check out GUI.SVG source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: TrentBest/TheSingularityWorkshop.GUI
+          ref: development
+          path: TheSingularityWorkshop.GUI
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build dependency-machine renderer
+        run: dotnet build TheSingularityWorkshop.Gauntlet/samples/DependencyMachineBadge/DependencyMachineBadge.csproj --configuration Release
+
+      - name: Render and verify both machine states
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p _site/dependency-machine
+          project=TheSingularityWorkshop.Gauntlet/samples/DependencyMachineBadge/DependencyMachineBadge.csproj
+          dotnet run --no-build --project "$project" --configuration Release -- --input TheSingularityWorkshop.Gauntlet/samples/DependencyMachineBadge/fixtures/parallel-join.json --output _site/dependency-machine/failed.svg
+          dotnet run --no-build --project "$project" --configuration Release -- --input TheSingularityWorkshop.Gauntlet/samples/DependencyMachineBadge/fixtures/all-passed.json --output _site/dependency-machine/passed.svg
+          python3 TheSingularityWorkshop.Gauntlet/scripts/verify-dependency-machine-fixture.py _site/dependency-machine/failed.svg failed
+          python3 TheSingularityWorkshop.Gauntlet/scripts/verify-dependency-machine-fixture.py _site/dependency-machine/passed.svg passed
+          cp TheSingularityWorkshop.Gauntlet/site/index.html _site/index.html
+          cp TheSingularityWorkshop.Gauntlet/docs/DEPENDENCY_MACHINE.md _site/dependency-machine/DEPENDENCY_MACHINE.md
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    if: github.ref == 'refs/heads/development'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
