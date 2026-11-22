@@ -52,6 +52,39 @@ var scene = GuiBuilder.Create("svg-scene", "dependency-machine")
         $"{evaluation.PassedRequiredStages} of {evaluation.TotalRequiredStages} required stages passed. " +
         string.Join(", ", snapshot.Stages.Select(stage => $"{stage.StageId}: {stage.Status}")) + ".");
 
+var motionStyles = """
+  .pendulum-shaft { transform-box: fill-box; transform-origin: 50% 0%; }
+  .gear-wheel { transform-box: fill-box; transform-origin: center; }
+  .crusher-plate { transform-box: fill-box; transform-origin: 50% 0%; }
+  .trap-floor { transform-box: fill-box; transform-origin: center; }
+  .stage-running .pendulum-shaft { animation: pendulum-swing 1.1s ease-in-out infinite alternate; }
+  .stage-failed .pendulum-shaft { animation: pendulum-swing 0.55s ease-in-out infinite alternate; }
+  .stage-running .gear-wheel { animation: gear-turn 2.8s linear infinite; }
+  .stage-failed .gear-wheel { animation: gear-turn 0.8s linear infinite; }
+  .stage-running .crusher-plate { animation: crusher-drop 1.4s ease-in-out infinite; }
+  .stage-failed .crusher-plate { animation: crusher-drop 0.7s ease-in-out infinite; }
+  .stage-running .trap-floor { animation: trap-open 2.2s ease-in-out infinite; }
+  .knight-advancing { animation: knight-step 0.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+  .knight-celebrating { animation: knight-cheer 2.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+  .knight-failed { animation: knight-impact 2.1s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+  .helmet-scatter { animation: helmet-scatter 2.1s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+  @keyframes pendulum-swing { from { transform: rotate(-42deg); } to { transform: rotate(42deg); } }
+  @keyframes gear-turn { to { transform: rotate(360deg); } }
+  @keyframes crusher-drop { 0%, 45%, 100% { transform: translateY(0); } 60%, 75% { transform: translateY(8px); } }
+  @keyframes trap-open { 0%, 35%, 100% { opacity: 1; } 55%, 75% { opacity: 0.25; } }
+  @keyframes knight-step { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+  @keyframes knight-cheer { 0%, 100% { transform: translateY(0) rotate(0); } 45% { transform: translateY(-4px) rotate(-4deg); } 65% { transform: translateY(0) rotate(4deg); } }
+  @keyframes knight-impact { 0%, 18%, 100% { transform: translateX(0) rotate(0); } 35%, 70% { transform: translateX(3px) rotate(5deg); } }
+  @keyframes helmet-scatter { 0%, 15% { transform: translate(0, 0) rotate(0); } 55%, 85% { transform: translate(10px, -9px) rotate(35deg); } 100% { transform: translate(0, 0) rotate(0); } }
+  @media (prefers-reduced-motion: reduce) {
+    .pendulum-shaft, .gear-wheel, .crusher-plate, .trap-floor,
+    .knight-advancing, .knight-celebrating, .knight-failed, .helmet-scatter {
+      animation: none !important;
+    }
+  }
+  """;
+scene.Child("svg-style", "dependency-machine-motion", style => style.Text(motionStyles));
+
 scene.Child("svg-rect", "background", node => node
     .Property("x", "1").Property("y", "1")
     .Property("width", (width - 2).ToString()).Property("height", (height - 2).ToString())
@@ -84,9 +117,15 @@ foreach (var stage in snapshot.Stages)
     var accent = StageColor(stage.Status);
     var archetype = Archetype(stage.StageId);
     var stageKey = SafeId(stage.StageId);
+    var stageClass = stage.Status switch
+    {
+        DependencyStageStatus.Running => "stage-running",
+        DependencyStageStatus.Failed => "stage-failed",
+        _ => "stage-still"
+    };
     scene.Child("svg-g", $"stage-{stageKey}", group =>
     {
-        group.Property("transform", $"translate({x} {y})");
+        group.Property("class", stageClass).Property("transform", $"translate({x} {y})");
         group.Child("svg-rect", $"{stageKey}-panel", panel => panel
             .Property("x", "0").Property("y", "0").Property("width", "156").Property("height", "84")
             .Property("rx", "8").Property("fill", "#172638")
@@ -94,7 +133,7 @@ foreach (var stage in snapshot.Stages)
         AddText(group, $"{stageKey}-name", Shorten(stage.StageId), 8, 15, 6.4, "#f8fafc", "700");
         AddText(group, $"{stageKey}-status", stage.Status.ToString().ToUpperInvariant(), 8, 27, 4.8, accent, "800");
         AddText(group, $"{stageKey}-repo", stage.Candidate.Repository, 8, 77, 3.7, "#94a3b8", "500");
-        DrawMechanism(group, stageKey, archetype, accent);
+        DrawMechanism(group, stageKey, archetype, accent, stage.Status);
         AddText(group, $"{stageKey}-required", stage.Required ? "REQUIRED" : "OPTIONAL", 112, 15, 3.4, "#94a3b8", "600");
     });
 }
@@ -152,9 +191,16 @@ static void DrawKnight(GuiBuilder scene, string id, int x, int y, DependencyStag
 {
     var defeated = status == DependencyStageStatus.Failed;
     var celebrating = status == DependencyStageStatus.Passed;
-    scene.Child("svg-g", id, knight =>
+    var poseClass = defeated ? "knight-failed"
+        : celebrating ? "knight-celebrating"
+        : status == DependencyStageStatus.Running ? "knight-advancing"
+        : "knight-waiting";
+    scene.Child("svg-g", id, outer =>
     {
-        knight.Property("transform", $"translate({x} {y})");
+        outer.Property("transform", $"translate({x} {y})");
+        outer.Child("svg-g", $"{id}-pose", knight =>
+        {
+            knight.Property("class", poseClass);
         knight.Child("svg-line", $"{id}-ground", line => line.Property("x1", "-18").Property("y1", "18")
             .Property("x2", "18").Property("y2", "18").Property("stroke", "#64748b").Property("stroke-width", "1.5"));
         if (defeated)
@@ -172,7 +218,7 @@ static void DrawKnight(GuiBuilder scene, string id, int x, int y, DependencyStag
                 armor.Child("svg-path", $"{id}-fallen-shield", shield => shield.Property("d", "M-9 -5 L-16 -8 L-16 3 L-10 8 Z")
                     .Property("fill", "#31516c").Property("stroke", "#e7b84b"));
             });
-            knight.Child("svg-circle", $"{id}-flying-helmet", helmet => helmet.Property("cx", "17").Property("cy", "-9")
+            knight.Child("svg-circle", $"{id}-flying-helmet", helmet => helmet.Property("class", "helmet-scatter").Property("cx", "17").Property("cy", "-9")
                 .Property("r", "5").Property("fill", "#cbd5e1").Property("stroke", "#f8fafc"));
             knight.Child("svg-path", $"{id}-flying-plume", plume => plume.Property("d", "M17 -14 Q20 -20 24 -18")
                 .Property("fill", "none").Property("stroke", "#ef5365").Property("stroke-width", "2"));
@@ -201,12 +247,13 @@ static void DrawKnight(GuiBuilder scene, string id, int x, int y, DependencyStag
             knight.Child("svg-path", $"{id}-shield", shield => shield.Property("d", "M-9 -5 L-15 -8 L-15 3 L-10 8 Z")
                 .Property("fill", "#31516c").Property("stroke", "#e7b84b"));
         }
-        AddText(knight, $"{id}-caption", defeated ? "STRUCK DOWN" : status == DependencyStageStatus.Blocked
-            ? "HELD AT GATE" : celebrating ? "COURSE CLEARED" : "ADVANCING", -23, 31, 4, defeated ? "#ef5365" : "#cbd5e1", "700");
+            AddText(knight, $"{id}-caption", defeated ? "STRUCK DOWN" : status == DependencyStageStatus.Blocked
+                ? "HELD AT GATE" : celebrating ? "COURSE CLEARED" : "ADVANCING", -23, 31, 4, defeated ? "#ef5365" : "#cbd5e1", "700");
+        });
     });
 }
 
-static void DrawMechanism(GuiBuilder group, string stageKey, string archetype, string accent)
+static void DrawMechanism(GuiBuilder group, string stageKey, string archetype, string accent, DependencyStageStatus status)
 {
     group.Child("svg-g", $"{stageKey}-mechanism", machine =>
     {
@@ -214,26 +261,26 @@ static void DrawMechanism(GuiBuilder group, string stageKey, string archetype, s
         switch (archetype)
         {
             case "axe":
-                machine.Child("svg-line", $"{stageKey}-pendulum", line => line.Property("x1", "0").Property("y1", "-18")
+                machine.Child("svg-line", $"{stageKey}-pendulum", line => line.Property("class", "pendulum-shaft").Property("x1", "0").Property("y1", "-18")
                     .Property("x2", "0").Property("y2", "3").Property("stroke", "#cbd5e1").Property("stroke-width", "2"));
                 machine.Child("svg-path", $"{stageKey}-axe-head", head => head.Property("d", "M-11 2 L0 0 L10 8 L-2 11 Z")
                     .Property("fill", "#94a3b8").Property("stroke", accent));
                 break;
             case "gear":
-                machine.Child("svg-circle", $"{stageKey}-gear", circle => circle.Property("cx", "0").Property("cy", "0")
+                machine.Child("svg-circle", $"{stageKey}-gear", circle => circle.Property("class", "gear-wheel").Property("cx", "0").Property("cy", "0")
                     .Property("r", "13").Property("fill", "none").Property("stroke", accent).Property("stroke-width", "4")
                     .Property("stroke-dasharray", "5 2"));
                 machine.Child("svg-circle", $"{stageKey}-gear-hub", hub => hub.Property("cx", "0").Property("cy", "0")
                     .Property("r", "3").Property("fill", "#cbd5e1"));
                 break;
             case "crusher":
-                machine.Child("svg-rect", $"{stageKey}-crusher-top", rect => rect.Property("x", "-15").Property("y", "-13")
+                machine.Child("svg-rect", $"{stageKey}-crusher-top", rect => rect.Property("class", "crusher-plate").Property("x", "-15").Property("y", "-13")
                     .Property("width", "30").Property("height", "7").Property("fill", "#94a3b8").Property("stroke", accent));
                 machine.Child("svg-path", $"{stageKey}-crusher-teeth", teeth => teeth.Property("d", "M-12 -6 L-8 1 L-4 -6 L0 1 L4 -6 L8 1 L12 -6")
                     .Property("fill", "none").Property("stroke", accent).Property("stroke-width", "2"));
                 break;
             case "trap":
-                machine.Child("svg-path", $"{stageKey}-trap-floor", floor => floor.Property("d", "M-18 8 L-10 -5 L-2 8 L6 -5 L14 8")
+                machine.Child("svg-path", $"{stageKey}-trap-floor", floor => floor.Property("class", "trap-floor").Property("d", "M-18 8 L-10 -5 L-2 8 L6 -5 L14 8")
                     .Property("fill", "none").Property("stroke", accent).Property("stroke-width", "3"));
                 break;
             default:
