@@ -28,7 +28,12 @@ public static class DependencyGraphSnapshotIntegrity
     }
 
     /// <summary>Computes the deterministic SHA-256 digest over snapshot content, excluding the digest field.</summary>
-    public static string ComputeDigest(DependencyGraphSnapshot snapshot)
+    /// <summary>Serializes the canonical version-1 wire payload with the digest field set to null.</summary>
+    /// <remarks>
+    /// Uses camelCase System.Text.Json properties, no indentation, declaration-order object properties,
+    /// ordinally sorted stages, and ordinally sorted upstream IDs. Enum values remain numeric on the wire.
+    /// </remarks>
+    public static string SerializeCanonical(DependencyGraphSnapshot snapshot)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         if (snapshot.Stages is null || snapshot.Stages.Any(stage => stage is null))
@@ -49,7 +54,13 @@ public static class DependencyGraphSnapshotIntegrity
                 .ToArray()
         };
 
-        var bytes = JsonSerializer.SerializeToUtf8Bytes(canonical, SerializerOptions);
+        return JsonSerializer.Serialize(canonical, SerializerOptions);
+    }
+
+    /// <summary>Computes the deterministic SHA-256 digest over snapshot content, excluding the digest field.</summary>
+    public static string ComputeDigest(DependencyGraphSnapshot snapshot)
+    {
+        var bytes = Encoding.UTF8.GetBytes(SerializeCanonical(snapshot));
         return "sha256:" + Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
     }
 
