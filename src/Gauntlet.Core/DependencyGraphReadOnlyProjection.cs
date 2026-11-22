@@ -51,18 +51,27 @@ public sealed record DependencyGraphReadOnlyProjection
 
         var validation = DependencyGraphEvaluator.Validate(snapshot);
         var evaluation = DependencyGraphEvaluator.Evaluate(snapshot);
-        var byId = (snapshot.Stages ?? Array.Empty<DependencyStage>())
+        var sourceStages = (snapshot.Stages ?? Array.Empty<DependencyStage>())
             .Where(stage => stage is not null)
-            .ToDictionary(stage => stage.StageId, StringComparer.Ordinal);
-
-        var orderedIds = validation.IsValid
-            ? validation.TopologicalStageIds
-            : byId.Keys.OrderBy(id => id, StringComparer.Ordinal).ToArray();
-
-        var stages = orderedIds
-            .Where(byId.ContainsKey)
-            .Select(id => DependencyStageReadOnlyProjection.From(byId[id]))
             .ToArray();
+
+        DependencyStageReadOnlyProjection[] stages;
+        if (validation.IsValid)
+        {
+            var byId = sourceStages.ToDictionary(stage => stage.StageId, StringComparer.Ordinal);
+            stages = validation.TopologicalStageIds
+                .Select(id => DependencyStageReadOnlyProjection.From(byId[id]))
+                .ToArray();
+        }
+        else
+        {
+            // Preserve malformed/duplicate entries for diagnosis without relying on a unique-key map.
+            stages = sourceStages
+                .OrderBy(stage => stage.StageId, StringComparer.Ordinal)
+                .ThenBy(stage => stage.AttemptId, StringComparer.Ordinal)
+                .Select(DependencyStageReadOnlyProjection.From)
+                .ToArray();
+        }
 
         return new DependencyGraphReadOnlyProjection(
             snapshot.SchemaVersion,
