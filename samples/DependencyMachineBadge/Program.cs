@@ -14,7 +14,11 @@ var snapshot = JsonSerializer.Deserialize<DependencyGraphSnapshot>(
 
 var validation = DependencyGraphEvaluator.Validate(snapshot);
 if (!validation.IsValid)
+{
+    Console.Error.WriteLine($"Supplied snapshot digest: {snapshot.SnapshotDigest}");
+    Console.Error.WriteLine($"Computed snapshot digest: {DependencyGraphSnapshotIntegrity.ComputeDigest(snapshot)}");
     throw new InvalidDataException("Invalid dependency graph: " + string.Join(" | ", validation.Errors));
+}
 
 var evaluation = DependencyGraphEvaluator.Evaluate(snapshot);
 var stages = snapshot.Stages.ToDictionary(stage => stage.StageId, StringComparer.Ordinal);
