@@ -110,7 +110,7 @@ public sealed class DependencyGraphEvaluatorTests
     public void Snapshot_copies_stage_collection()
     {
         var stages = new List<DependencyStage> { Stage("core") };
-        var graph = Graph(stages);
+        var graph = new DependencyGraphSnapshot(1, "snapshot-1", Digest, "pipeline-attempt-1", stages);
         stages.Clear();
 
         Assert.Single(graph.Stages);
