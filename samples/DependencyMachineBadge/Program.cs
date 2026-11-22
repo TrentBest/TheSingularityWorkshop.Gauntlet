@@ -83,18 +83,19 @@ foreach (var stage in snapshot.Stages)
     var (x, y) = positions[stage.StageId];
     var accent = StageColor(stage.Status);
     var archetype = Archetype(stage.StageId);
-    scene.Child("svg-g", $"stage-{SafeId(stage.StageId)}", group =>
+    var stageKey = SafeId(stage.StageId);
+    scene.Child("svg-g", $"stage-{stageKey}", group =>
     {
         group.Property("transform", $"translate({x} {y})");
-        group.Child("svg-rect", "stage-panel", panel => panel
+        group.Child("svg-rect", $"{stageKey}-panel", panel => panel
             .Property("x", "0").Property("y", "0").Property("width", "156").Property("height", "84")
             .Property("rx", "8").Property("fill", "#172638")
             .Property("stroke", accent).Property("stroke-width", "1.5"));
-        AddText(group, "stage-name", Shorten(stage.StageId), 8, 15, 6.4, "#f8fafc", "700");
-        AddText(group, "stage-status", stage.Status.ToString().ToUpperInvariant(), 8, 27, 4.8, accent, "800");
-        AddText(group, "stage-repo", stage.Candidate.Repository, 8, 77, 3.7, "#94a3b8", "500");
-        DrawMechanism(group, archetype, accent);
-        AddText(group, "stage-required", stage.Required ? "REQUIRED" : "OPTIONAL", 112, 15, 3.4, "#94a3b8", "600");
+        AddText(group, $"{stageKey}-name", Shorten(stage.StageId), 8, 15, 6.4, "#f8fafc", "700");
+        AddText(group, $"{stageKey}-status", stage.Status.ToString().ToUpperInvariant(), 8, 27, 4.8, accent, "800");
+        AddText(group, $"{stageKey}-repo", stage.Candidate.Repository, 8, 77, 3.7, "#94a3b8", "500");
+        DrawMechanism(group, stageKey, archetype, accent);
+        AddText(group, $"{stageKey}-required", stage.Required ? "REQUIRED" : "OPTIONAL", 112, 15, 3.4, "#94a3b8", "600");
     });
 }
 
@@ -118,42 +119,42 @@ Directory.CreateDirectory(Path.GetDirectoryName(output)!);
 File.WriteAllText(output, svg);
 Console.WriteLine($"Rendered {evaluation.Status} dependency-machine preview to {output}");
 
-static void DrawMechanism(GuiBuilder group, string archetype, string accent)
+static void DrawMechanism(GuiBuilder group, string stageKey, string archetype, string accent)
 {
-    group.Child("svg-g", "mechanism", machine =>
+    group.Child("svg-g", $"{stageKey}-mechanism", machine =>
     {
         machine.Property("transform", "translate(78 48)");
         switch (archetype)
         {
             case "axe":
-                machine.Child("svg-line", "pendulum", line => line.Property("x1", "0").Property("y1", "-18")
+                machine.Child("svg-line", $"{stageKey}-pendulum", line => line.Property("x1", "0").Property("y1", "-18")
                     .Property("x2", "0").Property("y2", "3").Property("stroke", "#cbd5e1").Property("stroke-width", "2"));
-                machine.Child("svg-path", "axe-head", head => head.Property("d", "M-11 2 L0 0 L10 8 L-2 11 Z")
+                machine.Child("svg-path", $"{stageKey}-axe-head", head => head.Property("d", "M-11 2 L0 0 L10 8 L-2 11 Z")
                     .Property("fill", "#94a3b8").Property("stroke", accent));
                 break;
             case "gear":
-                machine.Child("svg-circle", "gear", circle => circle.Property("cx", "0").Property("cy", "0")
+                machine.Child("svg-circle", $"{stageKey}-gear", circle => circle.Property("cx", "0").Property("cy", "0")
                     .Property("r", "13").Property("fill", "none").Property("stroke", accent).Property("stroke-width", "4")
                     .Property("stroke-dasharray", "5 2"));
-                machine.Child("svg-circle", "gear-hub", hub => hub.Property("cx", "0").Property("cy", "0")
+                machine.Child("svg-circle", $"{stageKey}-gear-hub", hub => hub.Property("cx", "0").Property("cy", "0")
                     .Property("r", "3").Property("fill", "#cbd5e1"));
                 break;
             case "crusher":
-                machine.Child("svg-rect", "crusher-top", rect => rect.Property("x", "-15").Property("y", "-13")
+                machine.Child("svg-rect", $"{stageKey}-crusher-top", rect => rect.Property("x", "-15").Property("y", "-13")
                     .Property("width", "30").Property("height", "7").Property("fill", "#94a3b8").Property("stroke", accent));
-                machine.Child("svg-path", "crusher-teeth", teeth => teeth.Property("d", "M-12 -6 L-8 1 L-4 -6 L0 1 L4 -6 L8 1 L12 -6")
+                machine.Child("svg-path", $"{stageKey}-crusher-teeth", teeth => teeth.Property("d", "M-12 -6 L-8 1 L-4 -6 L0 1 L4 -6 L8 1 L12 -6")
                     .Property("fill", "none").Property("stroke", accent).Property("stroke-width", "2"));
                 break;
             case "trap":
-                machine.Child("svg-path", "trap-floor", floor => floor.Property("d", "M-18 8 L-10 -5 L-2 8 L6 -5 L14 8")
+                machine.Child("svg-path", $"{stageKey}-trap-floor", floor => floor.Property("d", "M-18 8 L-10 -5 L-2 8 L6 -5 L14 8")
                     .Property("fill", "none").Property("stroke", accent).Property("stroke-width", "3"));
                 break;
             default:
-                machine.Child("svg-rect", "portcullis", gate => gate.Property("x", "-12").Property("y", "-14")
+                machine.Child("svg-rect", $"{stageKey}-portcullis", gate => gate.Property("x", "-12").Property("y", "-14")
                     .Property("width", "24").Property("height", "28").Property("fill", "none")
                     .Property("stroke", accent).Property("stroke-width", "2"));
                 for (var i = -8; i <= 8; i += 8)
-                    machine.Child("svg-line", $"bar-{i}", bar => bar.Property("x1", i.ToString()).Property("y1", "-13")
+                    machine.Child("svg-line", $"{stageKey}-bar-{i}", bar => bar.Property("x1", i.ToString()).Property("y1", "-13")
                         .Property("x2", i.ToString()).Property("y2", "13").Property("stroke", accent).Property("stroke-width", "1.5"));
                 break;
         }
