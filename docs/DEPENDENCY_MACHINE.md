@@ -32,8 +32,6 @@ Every dependency stage carries enough identity to prevent a green result driftin
 - Exact source commit SHA.
 - Exact artifact digest (and manifest digest when applicable).
 - Declared upstream stage IDs.
-- Required campaign profile ID and version.
-- Gauntlet run ID and report digest.
 - Gauntlet campaign profile ID/version/digest, run ID/attempt, and report digest.
 - CiAi evidence-bundle digest and HTTPS evidence reference; accepted evidence must bind both.
 - Evidence provider identity and trust/validation outcome.
