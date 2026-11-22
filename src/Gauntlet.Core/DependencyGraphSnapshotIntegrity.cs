@@ -28,7 +28,7 @@ public static class DependencyGraphSnapshotIntegrity
     }
 
     /// <summary>Computes the deterministic SHA-256 digest over snapshot content, excluding the digest field.</summary>
-    /// <summary>Serializes the canonical version-1 wire payload with the digest field set to null.</summary>
+    /// <summary>Serializes the canonical version-2 wire payload with the digest field set to null.</summary>
     /// <remarks>
     /// Uses camelCase System.Text.Json properties, no indentation, declaration-order object properties,
     /// ordinally sorted stages, and ordinally sorted upstream IDs. Enum values remain numeric on the wire.
