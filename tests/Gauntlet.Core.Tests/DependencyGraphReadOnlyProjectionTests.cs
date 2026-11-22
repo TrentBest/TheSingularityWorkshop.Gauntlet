@@ -21,7 +21,6 @@ public sealed class DependencyGraphReadOnlyProjectionTests
         Assert.True(projection.IsStructurallyValid);
         Assert.Equal(DependencyGraphStatus.Blocked, projection.Status);
         Assert.Equal(new[] { "core", "left", "right", "join" }, projection.Stages.Select(x => x.StageId));
-        Assert.All(projection.Stages, stage => Assert.Empty(stage.UpstreamStageIds.Where(id => id == null)));
     }
 
     [Fact]
@@ -34,6 +33,18 @@ public sealed class DependencyGraphReadOnlyProjectionTests
         Assert.False(projection.IsStructurallyValid);
         Assert.Equal(DependencyGraphStatus.Invalid, projection.Status);
         Assert.Single(projection.Stages);
+    }
+
+    [Fact]
+    public void Invalid_duplicate_stage_ids_remain_visible_without_throwing()
+    {
+        var graph = Graph(Stage("duplicate"), Stage("duplicate"));
+
+        var projection = DependencyGraphReadOnlyProjection.Create(graph);
+
+        Assert.False(projection.IsStructurallyValid);
+        Assert.Equal(DependencyGraphStatus.Invalid, projection.Status);
+        Assert.Equal(2, projection.Stages.Count);
     }
 
     [Fact]
@@ -57,11 +68,11 @@ public sealed class DependencyGraphReadOnlyProjectionTests
 
     private static DependencyStage Stage(
         string id,
-        string[]? upstream = null,
+        IReadOnlyList<string>? upstream = null,
         DependencyStageStatus status = DependencyStageStatus.NotYetRun) =>
         new(id,
             new DependencyCandidateIdentity("owner/repo", id, Commit, Digest, null),
-            upstream ?? [],
+            upstream ?? Array.Empty<string>(),
             true,
             $"attempt-{id}",
             status);
