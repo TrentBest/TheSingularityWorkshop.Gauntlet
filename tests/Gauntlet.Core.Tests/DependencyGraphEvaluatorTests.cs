@@ -55,6 +55,20 @@ public sealed class DependencyGraphEvaluatorTests
     }
 
     [Fact]
+    public void Accepted_evidence_must_bind_the_exact_pipeline_and_stage_attempt()
+    {
+        var valid = Stage("core", status: DependencyStageStatus.Passed);
+        var wrongPipeline = Graph(valid with
+        {
+            Evidence = valid.Evidence! with { PipelineAttemptId = "pipeline-attempt-old" }
+        });
+        var replayedStageAttempt = Graph(valid with { AttemptId = "attempt-retry-2" });
+
+        Assert.False(DependencyGraphEvaluator.Validate(wrongPipeline).IsValid);
+        Assert.False(DependencyGraphEvaluator.Validate(replayedStageAttempt).IsValid);
+    }
+
+    [Fact]
     public void Accepted_evidence_requires_an_evidence_bundle_digest_and_reference()
     {
         var evidence = Stage("core", status: DependencyStageStatus.Passed).Evidence!;
@@ -161,7 +175,7 @@ public sealed class DependencyGraphEvaluatorTests
         var tampered = first with
         {
             Stages = first.Stages.Select(stage => stage.StageId == "a"
-                ? stage with { Status = DependencyStageStatus.Failed, Evidence = new DependencyStageEvidence("standard", 1, Digest, "run-a", Digest, "trusted-provider", DependencyEvidenceState.Accepted, Digest, "https://example.invalid/evidence/run-a") }
+                ? stage with { Status = DependencyStageStatus.Failed, Evidence = new DependencyStageEvidence("standard", 1, Digest, "run-a", Digest, "trusted-provider", DependencyEvidenceState.Accepted, Digest, "https://example.invalid/evidence/run-a", "pipeline-attempt-1", "attempt-a") }
                 : stage).ToArray()
         };
 
@@ -176,7 +190,7 @@ public sealed class DependencyGraphEvaluatorTests
     public void Snapshot_copies_stage_collection()
     {
         var stages = new List<DependencyStage> { Stage("core") };
-        var graph = DependencyGraphSnapshotIntegrity.Seal(new DependencyGraphSnapshot(1, "snapshot-1", Digest, "pipeline-attempt-1", stages));
+        var graph = DependencyGraphSnapshotIntegrity.Seal(new DependencyGraphSnapshot(DependencyGraphSnapshot.CurrentSchemaVersion, "snapshot-1", Digest, "pipeline-attempt-1", stages));
         stages.Clear();
 
         Assert.Single(graph.Stages);
@@ -199,7 +213,7 @@ public sealed class DependencyGraphEvaluatorTests
 
     private static DependencyGraphSnapshot Graph(params DependencyStage[] stages) =>
         DependencyGraphSnapshotIntegrity.Seal(
-            new DependencyGraphSnapshot(1, "snapshot-1", Digest, "pipeline-attempt-1", stages));
+            new DependencyGraphSnapshot(DependencyGraphSnapshot.CurrentSchemaVersion, "snapshot-1", Digest, "pipeline-attempt-1", stages));
 
     private static DependencyStage Stage(
         string id,
@@ -207,7 +221,7 @@ public sealed class DependencyGraphEvaluatorTests
         DependencyStageStatus status = DependencyStageStatus.NotYetRun)
     {
         var evidence = status is DependencyStageStatus.Passed or DependencyStageStatus.Failed
-            ? new DependencyStageEvidence("standard", 1, Digest, $"run-{id}", Digest, "trusted-provider", DependencyEvidenceState.Accepted, Digest, $"https://example.invalid/evidence/run-{id}")
+            ? new DependencyStageEvidence("standard", 1, Digest, $"run-{id}", Digest, "trusted-provider", DependencyEvidenceState.Accepted, Digest, $"https://example.invalid/evidence/run-{id}", "pipeline-attempt-1", $"attempt-{id}")
             : null;
 
         return new DependencyStage(
