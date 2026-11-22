@@ -62,6 +62,20 @@ public static class DependencyGraphEvaluator
             }
         }
 
+        foreach (var stage in byId.Values)
+        {
+            foreach (var upstreamId in stage.UpstreamStageIds ?? [])
+            {
+                if (!byId.TryGetValue(upstreamId, out var upstream))
+                    continue;
+                if (stage.Status == DependencyStageStatus.Blocked && upstream.Status == DependencyStageStatus.Passed)
+                    errors.Add($"Stage '{stage.StageId}' is marked blocked although upstream stage '{upstreamId}' passed.");
+                if (stage.Status is not (DependencyStageStatus.NotYetRun or DependencyStageStatus.Blocked) &&
+                    upstream.Status != DependencyStageStatus.Passed)
+                    errors.Add($"Stage '{stage.StageId}' has started or completed before upstream stage '{upstreamId}' passed.");
+            }
+        }
+
         var order = TopologicalOrder(byId, errors);
         return new DependencyGraphValidation(errors.Count == 0, errors.AsReadOnly(), order.AsReadOnly());
     }
@@ -72,7 +86,7 @@ public static class DependencyGraphEvaluator
         if (!validation.IsValid)
             return new DependencyGraphEvaluation(
                 DependencyGraphStatus.Invalid, 0,
-                snapshot.Stages?.Count(x => x.Required) ?? 0,
+                snapshot.Stages?.Where(x => x is not null).Count(x => x.Required) ?? 0,
                 validation.Errors);
 
         var required = snapshot.Stages.Where(x => x.Required).ToArray();
@@ -213,5 +227,5 @@ public static class DependencyGraphEvaluator
         value is { Length: 40 or 64 } && value.All(Uri.IsHexDigit);
 
     private static bool IsSha256(string? value) =>
-        value is { Length: 64 } && value.All(Uri.IsHexDigit);
+        value is { Length: 71 } && value.StartsWith("sha256:", StringComparison.Ordinal) && value.AsSpan(7).ToString().All(Uri.IsHexDigit);
 }
