@@ -109,7 +109,7 @@ The version-1 projection contract uses this deterministic precedence when requir
 
 1. **Implemented in PR #5:** version-1 graph/stage contracts, candidate/evidence identity checks, DAG validation, deterministic topological order, prerequisite eligibility, and fail-closed aggregate projection.
 2. Expand tests for retries, stale graph snapshots, optional stages, malformed evidence, and every mixed-state precedence combination; CiAi remains responsible for cryptographic/provider trust and digest recomputation.
-3. **Implemented in PR #5:** deterministic tier/row layout and a static multi-stage GUI.SVG storyboard with dependency tracks, distinct mechanical archetypes, stage labels, aggregate gate, and a preview-only fixture watermark.
+3. **Implemented in PR #5:** deterministic tier/row layout and a static multi-stage GUI.SVG storyboard with dependency tracks, distinct mechanical archetypes, stage labels, a single advancing knight marker, a knocked-down failure pose with a separated helmet, aggregate gate, and a preview-only fixture watermark.
 4. Extend per-stage fixtures and reduced-motion/accessibility checks as choreography is introduced; the first storyboard is intentionally static and uses no animation.
 5. Add deterministic mechanical choreography per stage archetype.
 6. Connect a read-only CiAi projection only after CiAi independently validates each stage's source, artifact, profile, report, provider, and attempt binding.
