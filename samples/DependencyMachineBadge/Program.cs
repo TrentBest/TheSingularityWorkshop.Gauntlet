@@ -34,12 +34,12 @@ var rowById = rowsByDepth.SelectMany(pair => pair.Value.Select((id, row) => (id,
     .ToDictionary(item => item.id, item => item.row, StringComparer.Ordinal);
 var positions = new Dictionary<string, (int X, int Y)>(StringComparer.Ordinal);
 foreach (var stageId in validation.TopologicalStageIds)
-    positions[stageId] = (34 + depth[stageId] * 190, 76 + rowById[stageId] * 112);
+    positions[stageId] = (34 + depth[stageId] * 190, 76 + rowById[stageId] * 132);
 
 var maxDepth = depth.Values.Max();
 var maxRows = rowsByDepth.Values.Max(rows => rows.Length);
 var width = 70 + (maxDepth + 1) * 190;
-var height = 86 + maxRows * 112;
+var height = 86 + maxRows * 132;
 var aggregateColor = GraphColor(evaluation.Status);
 
 var scene = GuiBuilder.Create("svg-scene", "dependency-machine")
@@ -99,6 +99,34 @@ foreach (var stage in snapshot.Stages)
     });
 }
 
+// One original vector knight advances through the static course snapshot.
+var travelerStage = snapshot.Stages.FirstOrDefault(stage => stage.Status == DependencyStageStatus.Failed)
+    ?? snapshot.Stages.FirstOrDefault(stage => stage.Status == DependencyStageStatus.Running)
+    ?? snapshot.Stages.FirstOrDefault(stage => stage.Status == DependencyStageStatus.Blocked)
+    ?? snapshot.Stages.FirstOrDefault(stage =>
+        stage.Status == DependencyStageStatus.NotYetRun &&
+        DependencyGraphEvaluator.IsEligible(snapshot, stage.StageId));
+
+int travelerX;
+int travelerY;
+DependencyStageStatus travelerStatus;
+if (travelerStage is null)
+{
+    travelerX = 34 + (maxDepth + 1) * 190 + 18;
+    travelerY = 112;
+    travelerStatus = evaluation.Status == DependencyGraphStatus.Passed
+        ? DependencyStageStatus.Passed
+        : DependencyStageStatus.NotYetRun;
+}
+else
+{
+    var (stageX, stageY) = positions[travelerStage.StageId];
+    travelerStatus = travelerStage.Status;
+    travelerX = stageX + (travelerStatus is DependencyStageStatus.Blocked or DependencyStageStatus.NotYetRun ? -10 : 78);
+    travelerY = stageY + 108;
+}
+DrawKnight(scene, "traveler", travelerX, travelerY, travelerStatus);
+
 // The final bell/drawbridge is a completion symbol, never a release authorization.
 var finishX = 34 + (maxDepth + 1) * 190;
 scene.Child("svg-g", "final-drawbridge", gate =>
@@ -118,6 +146,65 @@ var svg = new SvgGuiRenderer().Render(scene.Build(), width: width * 2, height: h
 Directory.CreateDirectory(Path.GetDirectoryName(output)!);
 File.WriteAllText(output, svg);
 Console.WriteLine($"Rendered {evaluation.Status} dependency-machine preview to {output}");
+
+
+static void DrawKnight(GuiBuilder scene, string id, int x, int y, DependencyStageStatus status)
+{
+    var defeated = status == DependencyStageStatus.Failed;
+    var celebrating = status == DependencyStageStatus.Passed;
+    scene.Child("svg-g", id, knight =>
+    {
+        knight.Property("transform", $"translate({x} {y})");
+        knight.Child("svg-line", $"{id}-ground", line => line.Property("x1", "-18").Property("y1", "18")
+            .Property("x2", "18").Property("y2", "18").Property("stroke", "#64748b").Property("stroke-width", "1.5"));
+        if (defeated)
+        {
+            knight.Child("svg-g", $"{id}-fallen-armor", armor =>
+            {
+                armor.Property("transform", "translate(-2 5) rotate(68)");
+                armor.Child("svg-rect", $"{id}-fallen-body", body => body.Property("x", "-5").Property("y", "-7")
+                    .Property("width", "10").Property("height", "15").Property("rx", "2")
+                    .Property("fill", "#94a3b8").Property("stroke", "#e2e8f0"));
+                armor.Child("svg-line", $"{id}-fallen-leg-left", leg => leg.Property("x1", "-3").Property("y1", "7")
+                    .Property("x2", "-12").Property("y2", "13").Property("stroke", "#cbd5e1").Property("stroke-width", "2.5"));
+                armor.Child("svg-line", $"{id}-fallen-leg-right", leg => leg.Property("x1", "3").Property("y1", "7")
+                    .Property("x2", "11").Property("y2", "12").Property("stroke", "#cbd5e1").Property("stroke-width", "2.5"));
+                armor.Child("svg-path", $"{id}-fallen-shield", shield => shield.Property("d", "M-9 -5 L-16 -8 L-16 3 L-10 8 Z")
+                    .Property("fill", "#31516c").Property("stroke", "#e7b84b"));
+            });
+            knight.Child("svg-circle", $"{id}-flying-helmet", helmet => helmet.Property("cx", "17").Property("cy", "-9")
+                .Property("r", "5").Property("fill", "#cbd5e1").Property("stroke", "#f8fafc"));
+            knight.Child("svg-path", $"{id}-flying-plume", plume => plume.Property("d", "M17 -14 Q20 -20 24 -18")
+                .Property("fill", "none").Property("stroke", "#ef5365").Property("stroke-width", "2"));
+        }
+        else
+        {
+            knight.Child("svg-rect", $"{id}-torso", body => body.Property("x", "-5").Property("y", "-7")
+                .Property("width", "10").Property("height", "15").Property("rx", "2")
+                .Property("fill", "#94a3b8").Property("stroke", "#f8fafc"));
+            knight.Child("svg-path", $"{id}-helmet", helmet => helmet.Property("d", "M-6 -8 Q-8 -19 0 -20 Q8 -19 6 -8 Z")
+                .Property("fill", "#cbd5e1").Property("stroke", "#f8fafc"));
+            knight.Child("svg-line", $"{id}-visor", visor => visor.Property("x1", "-4").Property("y1", "-12")
+                .Property("x2", "4").Property("y2", "-12").Property("stroke", "#1e293b").Property("stroke-width", "1.5"));
+            knight.Child("svg-path", $"{id}-plume", plume => plume.Property("d", "M0 -19 Q-2 -25 5 -26")
+                .Property("fill", "none").Property("stroke", "#bd5365").Property("stroke-width", "2"));
+            knight.Child("svg-line", $"{id}-left-leg", leg => leg.Property("x1", "-3").Property("y1", "7")
+                .Property("x2", "-7").Property("y2", "17").Property("stroke", "#cbd5e1").Property("stroke-width", "2.5"));
+            knight.Child("svg-line", $"{id}-right-leg", leg => leg.Property("x1", "3").Property("y1", "7")
+                .Property("x2", "7").Property("y2", "17").Property("stroke", "#cbd5e1").Property("stroke-width", "2.5"));
+            knight.Child("svg-line", $"{id}-left-arm", arm => arm.Property("x1", "-5").Property("y1", "-4")
+                .Property("x2", "-13").Property("y2", celebrating ? "-17" : "2")
+                .Property("stroke", "#cbd5e1").Property("stroke-width", "2.5"));
+            knight.Child("svg-line", $"{id}-right-arm", arm => arm.Property("x1", "5").Property("y1", "-4")
+                .Property("x2", "13").Property("y2", celebrating ? "-17" : "2")
+                .Property("stroke", "#cbd5e1").Property("stroke-width", "2.5"));
+            knight.Child("svg-path", $"{id}-shield", shield => shield.Property("d", "M-9 -5 L-15 -8 L-15 3 L-10 8 Z")
+                .Property("fill", "#31516c").Property("stroke", "#e7b84b"));
+        }
+        AddText(knight, $"{id}-caption", defeated ? "STRUCK DOWN" : status == DependencyStageStatus.Blocked
+            ? "HELD AT GATE" : celebrating ? "COURSE CLEARED" : "ADVANCING", -23, 31, 4, defeated ? "#ef5365" : "#cbd5e1", "700");
+    });
+}
 
 static void DrawMechanism(GuiBuilder group, string stageKey, string archetype, string accent)
 {
