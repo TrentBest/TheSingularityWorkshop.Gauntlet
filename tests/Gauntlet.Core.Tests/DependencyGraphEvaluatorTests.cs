@@ -89,6 +89,21 @@ public sealed class DependencyGraphEvaluatorTests
     }
 
     [Fact]
+    public void Optional_upstream_still_blocks_its_declared_downstream_stage()
+    {
+        var graph = Graph(
+            Stage("core"),
+            Stage("optional", status: DependencyStageStatus.Failed) with { Required = false },
+            Stage("dependent", ["optional"], status: DependencyStageStatus.Blocked));
+
+        var validation = DependencyGraphEvaluator.Validate(graph);
+
+        Assert.True(validation.IsValid, string.Join(Environment.NewLine, validation.Errors));
+        Assert.False(DependencyGraphEvaluator.IsEligible(graph, "dependent"));
+        Assert.Equal(DependencyGraphStatus.Blocked, DependencyGraphEvaluator.Evaluate(graph).Status);
+    }
+
+    [Fact]
     public void Failed_stage_blocks_descendant_but_not_independent_branch()
     {
         var graph = Graph(
