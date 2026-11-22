@@ -12,9 +12,9 @@ public sealed class DependencyGraphEvaluatorTests
     public void Validates_dag_and_returns_deterministic_topological_order()
     {
         var graph = Graph(
-            Stage("join", ["left", "right"]),
-            Stage("right", ["core"]),
-            Stage("left", ["core"]),
+            Stage("join", ["left", "right"], status: DependencyStageStatus.Blocked),
+            Stage("right", ["core"], status: DependencyStageStatus.Blocked),
+            Stage("left", ["core"], status: DependencyStageStatus.Blocked),
             Stage("core"));
 
         var result = DependencyGraphEvaluator.Validate(graph);
