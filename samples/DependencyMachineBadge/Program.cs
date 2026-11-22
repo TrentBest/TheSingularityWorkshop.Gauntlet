@@ -40,7 +40,7 @@ var maxDepth = depth.Values.Max();
 var maxRows = rowsByDepth.Values.Max(rows => rows.Length);
 var width = 70 + (maxDepth + 1) * 190;
 var height = 86 + maxRows * 112;
-var aggregateColor = Color(evaluation.Status);
+var aggregateColor = GraphColor(evaluation.Status);
 
 var scene = GuiBuilder.Create("svg-scene", "dependency-machine")
     .Text("The Gauntlet — dependency machine")
@@ -81,7 +81,7 @@ foreach (var stage in snapshot.Stages)
 foreach (var stage in snapshot.Stages)
 {
     var (x, y) = positions[stage.StageId];
-    var accent = Color(stage.Status);
+    var accent = StageColor(stage.Status);
     var archetype = Archetype(stage.StageId);
     scene.Child("svg-g", $"stage-{SafeId(stage.StageId)}", group =>
     {
@@ -167,7 +167,7 @@ static void AddText(GuiBuilder parent, string id, string value, int x, int y, do
         .Property("font-size", size.ToString(System.Globalization.CultureInfo.InvariantCulture))
         .Property("font-weight", weight));
 
-static string Color(DependencyStageStatus status) => status switch
+static string StageColor(DependencyStageStatus status) => status switch
 {
     DependencyStageStatus.Passed => "#42d392",
     DependencyStageStatus.Failed => "#ef5365",
@@ -179,7 +179,7 @@ static string Color(DependencyStageStatus status) => status switch
     _ => "#a78bfa"
 };
 
-static string Color(DependencyGraphStatus status) => status switch
+static string GraphColor(DependencyGraphStatus status) => status switch
 {
     DependencyGraphStatus.Passed => "#42d392",
     DependencyGraphStatus.Failed => "#ef5365",
