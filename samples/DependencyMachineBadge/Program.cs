@@ -64,6 +64,7 @@ var motionStyles = """
   .stage-running .crusher-plate { animation: crusher-drop 1.4s ease-in-out infinite; }
   .stage-failed .crusher-plate { animation: crusher-drop 0.7s ease-in-out infinite; }
   .stage-running .trap-floor { animation: trap-open 2.2s ease-in-out infinite; }
+  .stage-failed .trap-floor { animation: trap-open 0.8s ease-in-out infinite; }
   .knight-advancing { animation: knight-step 0.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
   .knight-celebrating { animation: knight-cheer 2.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
   .knight-failed { animation: knight-impact 2.1s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
@@ -133,7 +134,7 @@ foreach (var stage in snapshot.Stages)
         AddText(group, $"{stageKey}-name", Shorten(stage.StageId), 8, 15, 6.4, "#f8fafc", "700");
         AddText(group, $"{stageKey}-status", stage.Status.ToString().ToUpperInvariant(), 8, 27, 4.8, accent, "800");
         AddText(group, $"{stageKey}-repo", stage.Candidate.Repository, 8, 77, 3.7, "#94a3b8", "500");
-        DrawMechanism(group, stageKey, archetype, accent, stage.Status);
+        DrawMechanism(group, stageKey, archetype, accent);
         AddText(group, $"{stageKey}-required", stage.Required ? "REQUIRED" : "OPTIONAL", 112, 15, 3.4, "#94a3b8", "600");
     });
 }
@@ -253,7 +254,7 @@ static void DrawKnight(GuiBuilder scene, string id, int x, int y, DependencyStag
     });
 }
 
-static void DrawMechanism(GuiBuilder group, string stageKey, string archetype, string accent, DependencyStageStatus status)
+static void DrawMechanism(GuiBuilder group, string stageKey, string archetype, string accent)
 {
     group.Child("svg-g", $"{stageKey}-mechanism", machine =>
     {
