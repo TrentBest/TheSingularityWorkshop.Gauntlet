@@ -17,8 +17,8 @@ public static class DependencyGraphEvaluator
             errors.Add($"Unsupported graph schema version: {snapshot.SchemaVersion}.");
         if (string.IsNullOrWhiteSpace(snapshot.SnapshotId))
             errors.Add("Snapshot ID is required.");
-        if (!IsSha256(snapshot.SnapshotDigest))
-            errors.Add("Snapshot digest must be a 64-character SHA-256 hex value.");
+        if (!DependencyGraphSnapshotIntegrity.Verify(snapshot))
+            errors.Add("Snapshot digest is missing, malformed, or does not match canonical graph content.");
         if (string.IsNullOrWhiteSpace(snapshot.PipelineAttemptId))
             errors.Add("Pipeline attempt ID is required.");
         if (snapshot.Stages is null || snapshot.Stages.Count == 0)
