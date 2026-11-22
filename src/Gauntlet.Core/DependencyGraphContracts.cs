@@ -58,6 +58,8 @@ public sealed record DependencyStageEvidence(
 /// <summary>One dependency node and its read-only status projection.</summary>
 public sealed record DependencyStage
 {
+    private IReadOnlyList<string> _upstreamStageIds = Array.Empty<string>();
+
     public DependencyStage(
         string stageId,
         DependencyCandidateIdentity candidate,
@@ -69,7 +71,7 @@ public sealed record DependencyStage
     {
         StageId = stageId;
         Candidate = candidate;
-        UpstreamStageIds = Array.AsReadOnly(upstreamStageIds?.ToArray() ?? []);
+        UpstreamStageIds = upstreamStageIds;
         Required = required;
         AttemptId = attemptId;
         Status = status;
@@ -78,7 +80,11 @@ public sealed record DependencyStage
 
     public string StageId { get; init; }
     public DependencyCandidateIdentity Candidate { get; init; }
-    public IReadOnlyList<string> UpstreamStageIds { get; init; }
+    public IReadOnlyList<string> UpstreamStageIds
+    {
+        get => _upstreamStageIds;
+        init => _upstreamStageIds = Array.AsReadOnly(value?.ToArray() ?? []);
+    }
     public bool Required { get; init; }
     public string AttemptId { get; init; }
     public DependencyStageStatus Status { get; init; }
@@ -88,6 +94,8 @@ public sealed record DependencyStage
 /// <summary>One immutable, versioned dependency graph and pipeline-attempt snapshot.</summary>
 public sealed record DependencyGraphSnapshot
 {
+    private IReadOnlyList<DependencyStage> _stages = Array.Empty<DependencyStage>();
+
     public const int CurrentSchemaVersion = 1;
 
     public DependencyGraphSnapshot(
@@ -101,14 +109,18 @@ public sealed record DependencyGraphSnapshot
         SnapshotId = snapshotId;
         SnapshotDigest = snapshotDigest;
         PipelineAttemptId = pipelineAttemptId;
-        Stages = Array.AsReadOnly(stages?.ToArray() ?? []);
+        Stages = stages;
     }
 
     public int SchemaVersion { get; init; }
     public string SnapshotId { get; init; }
     public string SnapshotDigest { get; init; }
     public string PipelineAttemptId { get; init; }
-    public IReadOnlyList<DependencyStage> Stages { get; init; }
+    public IReadOnlyList<DependencyStage> Stages
+    {
+        get => _stages;
+        init => _stages = Array.AsReadOnly(value?.ToArray() ?? []);
+    }
 }
 
 /// <summary>Validation outcome for a dependency graph snapshot.</summary>
