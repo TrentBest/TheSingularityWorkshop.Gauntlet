@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "snapshotId": "preview-fixture-all-passed-v1",
-  "snapshotDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "snapshotDigest": "sha256:0354aa8e63771cc4ac148053de6a15676dd823b7d8973d1e6d8c469a536db67d",
   "pipelineAttemptId": "preview-only-all-passed",
   "stages": [
     {
