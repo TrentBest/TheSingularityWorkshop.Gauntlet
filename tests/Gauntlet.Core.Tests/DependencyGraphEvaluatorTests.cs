@@ -167,6 +167,21 @@ public sealed class DependencyGraphEvaluatorTests
         Assert.Single(graph.Stages);
     }
 
+    [Fact]
+    public void Record_updates_defensively_copy_replacement_collections()
+    {
+        var upstream = new List<string> { "core" };
+        var stage = Stage("ui") with { UpstreamStageIds = upstream };
+        upstream.Add("unexpected");
+
+        var stages = new List<DependencyStage> { Stage("core") };
+        var graph = Graph(Stage("initial")) with { Stages = stages };
+        stages.Clear();
+
+        Assert.Equal(new[] { "core" }, stage.UpstreamStageIds);
+        Assert.Single(graph.Stages);
+    }
+
     private static DependencyGraphSnapshot Graph(params DependencyStage[] stages) =>
         DependencyGraphSnapshotIntegrity.Seal(
             new DependencyGraphSnapshot(1, "snapshot-1", Digest, "pipeline-attempt-1", stages));
