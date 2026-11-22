@@ -1,7 +1,7 @@
 {
-  "schemaVersion": 1,
-  "snapshotId": "preview-fixture-v1",
-  "snapshotDigest": "sha256:dcb15e0909734e0f85bc134b9b8cac757840f0e73781ae3af1cf45ff91f01dfe",
+  "schemaVersion": 2,
+  "snapshotId": "preview-fixture-v2",
+  "snapshotDigest": "sha256:70a53b9952127e4269f497b3a812728a65ed84ed1384bf1b7f9eaf4ad484219e",
   "pipelineAttemptId": "preview-only",
   "stages": [
     {
@@ -26,7 +26,9 @@
         "providerId": "preview-only",
         "validationState": 2,
         "evidenceBundleDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-        "evidenceReference": "https://example.invalid/gauntlet-preview/fsm-api"
+        "evidenceReference": "https://example.invalid/gauntlet-preview/fsm-api",
+        "pipelineAttemptId": "preview-only",
+        "stageAttemptId": "preview-fsm-api"
       }
     },
     {
@@ -53,34 +55,9 @@
         "providerId": "preview-only",
         "validationState": 2,
         "evidenceBundleDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-        "evidenceReference": "https://example.invalid/gauntlet-preview/gui-core"
-      }
-    },
-    {
-      "stageId": "serialization",
-      "candidate": {
-        "repository": "TrentBest/FSM_Serialization",
-        "packageId": "FSM_Serialization",
-        "sourceCommitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "artifactDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa5",
-        "manifestDigest": null
-      },
-      "upstreamStageIds": [
-        "fsm-api"
-      ],
-      "required": true,
-      "attemptId": "preview-serialization",
-      "status": 2,
-      "evidence": {
-        "profileId": "preview",
-        "profileVersion": 1,
-        "profileDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "runId": "preview-serialization",
-        "reportDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa6",
-        "providerId": "preview-only",
-        "validationState": 2,
-        "evidenceBundleDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-        "evidenceReference": "https://example.invalid/gauntlet-preview/serialization"
+        "evidenceReference": "https://example.invalid/gauntlet-preview/gui-core",
+        "pipelineAttemptId": "preview-only",
+        "stageAttemptId": "preview-gui-core"
       }
     },
     {
@@ -107,26 +84,10 @@
         "providerId": "preview-only",
         "validationState": 2,
         "evidenceBundleDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-        "evidenceReference": "https://example.invalid/gauntlet-preview/gui-wpf"
+        "evidenceReference": "https://example.invalid/gauntlet-preview/gui-wpf",
+        "pipelineAttemptId": "preview-only",
+        "stageAttemptId": "preview-gui-wpf"
       }
-    },
-    {
-      "stageId": "renderer",
-      "candidate": {
-        "repository": "TrentBest/TheSingularityWorkshop.Renderer",
-        "packageId": "Renderer",
-        "sourceCommitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "artifactDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa9",
-        "manifestDigest": null
-      },
-      "upstreamStageIds": [
-        "gui-wpf",
-        "serialization"
-      ],
-      "required": true,
-      "attemptId": "preview-renderer",
-      "status": 4,
-      "evidence": null
     },
     {
       "stageId": "physics",
@@ -152,7 +113,56 @@
         "providerId": "preview-only",
         "validationState": 2,
         "evidenceBundleDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-        "evidenceReference": "https://example.invalid/gauntlet-preview/physics"
+        "evidenceReference": "https://example.invalid/gauntlet-preview/physics",
+        "pipelineAttemptId": "preview-only",
+        "stageAttemptId": "preview-physics"
+      }
+    },
+    {
+      "stageId": "renderer",
+      "candidate": {
+        "repository": "TrentBest/TheSingularityWorkshop.Renderer",
+        "packageId": "Renderer",
+        "sourceCommitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "artifactDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa9",
+        "manifestDigest": null
+      },
+      "upstreamStageIds": [
+        "gui-wpf",
+        "serialization"
+      ],
+      "required": true,
+      "attemptId": "preview-renderer",
+      "status": 4,
+      "evidence": null
+    },
+    {
+      "stageId": "serialization",
+      "candidate": {
+        "repository": "TrentBest/FSM_Serialization",
+        "packageId": "FSM_Serialization",
+        "sourceCommitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "artifactDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa5",
+        "manifestDigest": null
+      },
+      "upstreamStageIds": [
+        "fsm-api"
+      ],
+      "required": true,
+      "attemptId": "preview-serialization",
+      "status": 2,
+      "evidence": {
+        "profileId": "preview",
+        "profileVersion": 1,
+        "profileDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "runId": "preview-serialization",
+        "reportDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa6",
+        "providerId": "preview-only",
+        "validationState": 2,
+        "evidenceBundleDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "evidenceReference": "https://example.invalid/gauntlet-preview/serialization",
+        "pipelineAttemptId": "preview-only",
+        "stageAttemptId": "preview-serialization"
       }
     }
   ]
