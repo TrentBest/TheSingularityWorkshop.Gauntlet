@@ -37,7 +37,7 @@ Every dependency stage carries enough identity to prevent a green result driftin
 - Evidence provider identity and trust/validation outcome.
 - Attempt identity and snapshot version.
 
-A mutable branch name is a locator, never candidate identity. A stage result is stale when any required source, artifact, profile, attempt, or graph identity no longer matches the pipeline snapshot.
+A mutable branch name is a locator, never candidate identity. A stage result is stale when any required source, artifact, profile, attempt, or graph identity no longer matches the pipeline snapshot. Digests use the existing Gauntlet canonical form `sha256:` followed by 64 lowercase hexadecimal characters.
 
 ### Stage states
 
@@ -109,8 +109,8 @@ The version-1 projection contract uses this deterministic precedence when requir
 
 1. **Implemented in PR #5:** version-1 graph/stage contracts, candidate/evidence identity checks, DAG validation, deterministic topological order, prerequisite eligibility, and fail-closed aggregate projection.
 2. Expand tests for retries, stale graph snapshots, optional stages, malformed evidence, and every mixed-state precedence combination; CiAi remains responsible for cryptographic/provider trust and digest recomputation.
-3. Add a stable stage-layout model and a static multi-stage storyboard.
-4. Add per-stage status fixtures and reduced-motion/accessibility checks.
+3. **Implemented in PR #5:** deterministic tier/row layout and a static multi-stage GUI.SVG storyboard with dependency tracks, distinct mechanical archetypes, stage labels, aggregate gate, and a preview-only fixture watermark.
+4. Extend per-stage fixtures and reduced-motion/accessibility checks as choreography is introduced; the first storyboard is intentionally static and uses no animation.
 5. Add deterministic mechanical choreography per stage archetype.
 6. Connect a read-only CiAi projection only after CiAi independently validates each stage's source, artifact, profile, report, provider, and attempt binding.
 7. Enable downstream scheduling only through CiAi's separately tested policy gates; never from badge output.
