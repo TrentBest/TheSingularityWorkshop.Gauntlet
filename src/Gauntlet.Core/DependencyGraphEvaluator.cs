@@ -62,9 +62,12 @@ public static class DependencyGraphEvaluator
             }
         }
 
+        if (!byId.Values.Any(stage => stage.Required))
+            errors.Add("At least one required dependency stage is required.");
+
         foreach (var stage in byId.Values)
         {
-            var prerequisitesPassed = stage.UpstreamStageIds.All(
+            var prerequisitesPassed = (stage.UpstreamStageIds ?? Array.Empty<string>()).All(
                 id => byId.TryGetValue(id, out var upstream) && upstream.Status == DependencyStageStatus.Passed);
 
             if (stage.Status == DependencyStageStatus.Blocked && prerequisitesPassed)
@@ -151,6 +154,8 @@ public static class DependencyGraphEvaluator
             errors.Add($"Stage '{stage.StageId}' has an invalid manifest SHA-256 digest.");
         if (string.IsNullOrWhiteSpace(stage.AttemptId))
             errors.Add($"Stage '{stage.StageId}' has no attempt identity.");
+        if (stage.UpstreamStageIds is null)
+            errors.Add($"Stage '{stage.StageId}' has no upstream dependency collection.");
         if (!Enum.IsDefined(stage.Status))
             errors.Add($"Stage '{stage.StageId}' has an unknown status value.");
 
@@ -224,5 +229,7 @@ public static class DependencyGraphEvaluator
         value is { Length: 40 or 64 } && value.All(Uri.IsHexDigit);
 
     private static bool IsSha256(string? value) =>
-        value is { Length: 71 } && value.StartsWith("sha256:", StringComparison.Ordinal) && value.AsSpan(7).ToString().All(Uri.IsHexDigit);
+        value is { Length: 71 } &&
+        value.StartsWith("sha256:", StringComparison.Ordinal) &&
+        value[7..].All(character => character is >= '0' and <= '9' or >= 'a' and <= 'f');
 }
