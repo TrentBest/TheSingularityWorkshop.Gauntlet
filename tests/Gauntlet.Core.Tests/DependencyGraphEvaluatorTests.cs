@@ -139,6 +139,7 @@ public sealed class DependencyGraphEvaluatorTests
         };
 
         Assert.Equal(first.SnapshotDigest, reordered.SnapshotDigest);
+        Assert.Equal(DependencyGraphSnapshotIntegrity.SerializeCanonical(first), DependencyGraphSnapshotIntegrity.SerializeCanonical(reordered));
         Assert.True(DependencyGraphSnapshotIntegrity.Verify(first));
         Assert.False(DependencyGraphSnapshotIntegrity.Verify(tampered));
         Assert.False(DependencyGraphEvaluator.Validate(tampered).IsValid);
