@@ -46,12 +46,22 @@ public sealed class DependencyGraphEvaluatorTests
     [Fact]
     public void Passed_requires_fully_bound_accepted_evidence()
     {
-        var graph = Graph(Stage("core", status: DependencyStageStatus.Passed));
+        var graph = Graph(Stage("core", status: DependencyStageStatus.Passed) with { Evidence = null });
 
         var result = DependencyGraphEvaluator.Validate(graph);
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, x => x.Contains("accepted", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Rejects_a_downstream_attempt_started_before_its_prerequisite_passes()
+    {
+        var graph = Graph(
+            Stage("core", status: DependencyStageStatus.Failed),
+            Stage("downstream", ["core"], status: DependencyStageStatus.Running));
+
+        Assert.False(DependencyGraphEvaluator.Validate(graph).IsValid);
     }
 
     [Fact]
