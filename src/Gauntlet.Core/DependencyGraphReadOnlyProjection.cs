@@ -86,7 +86,10 @@ public sealed record DependencyGraphReadOnlyProjection
     }
 }
 
-/// <summary>Presentation-only fields for one dependency stage; evidence payloads are deliberately excluded.</summary>
+/// <summary>
+/// Presentation-only fields for one dependency stage. Evidence payloads and external evidence
+/// references are deliberately excluded; included identity fields are diagnostic metadata only.
+/// </summary>
 public sealed record DependencyStageReadOnlyProjection(
     string StageId,
     string? Repository,
@@ -96,7 +99,12 @@ public sealed record DependencyStageReadOnlyProjection(
     bool Required,
     string AttemptId,
     DependencyStageStatus Status,
-    IReadOnlyList<string> UpstreamStageIds)
+    IReadOnlyList<string> UpstreamStageIds,
+    DependencyEvidenceState? EvidenceValidationState,
+    string? EvidenceProfileId,
+    string? EvidenceRunId,
+    string? EvidenceProviderId,
+    string? EvidenceReportDigest)
 {
     internal static DependencyStageReadOnlyProjection From(DependencyStage stage) =>
         new(
@@ -108,5 +116,10 @@ public sealed record DependencyStageReadOnlyProjection(
             stage.Required,
             stage.AttemptId,
             stage.Status,
-            Array.AsReadOnly((stage.UpstreamStageIds ?? Array.Empty<string>()).ToArray()));
+            Array.AsReadOnly((stage.UpstreamStageIds ?? Array.Empty<string>()).ToArray()),
+            stage.Evidence?.ValidationState,
+            stage.Evidence?.ProfileId,
+            stage.Evidence?.RunId,
+            stage.Evidence?.ProviderId,
+            stage.Evidence?.ReportDigest);
 }
