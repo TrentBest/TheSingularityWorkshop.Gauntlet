@@ -2,7 +2,7 @@
 
 **Status:** fixture-validated profile definition; not a verified SURPS runtime adapter.
 
-This profile is the first concrete Gauntlet/SURPS integration artifact. It pins one tabletop sourcebook and makes its selection explicit:
+This profile is the first concrete Gauntlet/SURPS integration artifact. Its closed [JSON Schema](schemas/surps-conformance-profile-v1.schema.json) defines the v1 interchange shape; the fixture test independently checks the pinned example and its evidence binding. It pins one tabletop sourcebook and makes its selection explicit:
 
 - SURPS is opted in for this campaign.
 - Exactly one rulebook is selected: `surps.core.spying` version `0.1.0`, CORE LOD 0.
