@@ -35,7 +35,9 @@ foreach (var stageId in validation.TopologicalStageIds)
 var rowsByDepth = validation.TopologicalStageIds
     .GroupBy(id => depth[id])
     .ToDictionary(group => group.Key, group => group.ToArray());
-var rowById = rowsByDepth.SelectMany(pair => pair.Value.Select((id, row) => (id, row)))
+var rowById = validation.TopologicalStageIds
+    .GroupBy(id => depth[id])
+    .SelectMany(group => group.Select((id, row) => (id, row)))
     .ToDictionary(item => item.id, item => item.row, StringComparer.Ordinal);
 var positions = new Dictionary<string, (int X, int Y)>(StringComparer.Ordinal);
 foreach (var stageId in validation.TopologicalStageIds)
