@@ -19,7 +19,9 @@ public sealed class SurpsConformanceProfileTests
         Assert.Equal(1, root["schemaVersion"]!.GetValue<int>());
         Assert.Equal("surps.campaign.core-spying.conformance", root["id"]!.GetValue<string>());
         Assert.Equal(1, root["version"]!.GetValue<int>());
-        Assert.Equal(ComputeProfileDigest(root), root["profileDigest"]!.GetValue<string>());
+        var computedDigest = ComputeProfileDigest(root);
+        Assert.True(StringComparer.Ordinal.Equals(computedDigest, root["profileDigest"]!.GetValue<string>()),
+            $"Profile digest mismatch. Computed digest: {computedDigest}");
 
         var source = root["source"]!;
         Assert.Equal("TrentBest/TheSingularityWorkshop.SingularityUniversalRoleplayingSystem",
