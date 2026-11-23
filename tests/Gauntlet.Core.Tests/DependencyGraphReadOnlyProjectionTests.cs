@@ -40,7 +40,9 @@ public sealed class DependencyGraphReadOnlyProjectionTests
         Assert.Equal("run-42", stage.EvidenceRunId);
         Assert.Equal("github-actions", stage.EvidenceProviderId);
         Assert.Equal(Digest, stage.EvidenceReportDigest);
-        Assert.DoesNotContain("private-evidence", string.Join("|", stage.GetType().GetProperties().Select(p => p.GetValue(stage)?.ToString())));
+        var projectedText = string.Join("|", stage.GetType().GetProperties().Select(p => p.GetValue(stage)?.ToString()));
+        Assert.DoesNotContain("private-evidence", projectedText);
+        Assert.DoesNotContain(Digest, projectedText.Replace(Digest, "", StringComparison.Ordinal));
     }
 
     [Fact]
