@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Verify the dependency-machine SVG's state-specific visual and accessibility contracts."""
 from pathlib import Path
+import re
 import sys
 
 if len(sys.argv) != 3 or sys.argv[2] not in {"failed", "passed"}:
@@ -42,6 +43,10 @@ state_specific = {
 missing = [marker for marker in common + state_specific[expected_state] if marker not in svg]
 if missing:
     raise SystemExit(f"{expected_state} dependency-machine SVG is missing expected labels: {', '.join(missing)}")
+
+ids = re.findall(r'\bid="([^"]+)"', svg)
+if len(ids) != len(set(ids)):
+    raise SystemExit("dependency-machine SVG contains duplicate element IDs")
 
 for forbidden in ("<script", "foreignObject", "javascript:", "https://"):
     if forbidden in svg:
