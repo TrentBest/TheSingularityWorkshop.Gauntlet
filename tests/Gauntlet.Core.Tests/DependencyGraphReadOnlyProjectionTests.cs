@@ -21,6 +21,26 @@ public sealed class DependencyGraphReadOnlyProjectionTests
         Assert.True(projection.IsStructurallyValid);
         Assert.Equal(DependencyGraphStatus.Blocked, projection.Status);
         Assert.Equal(new[] { "core", "left", "right", "join" }, projection.Stages.Select(x => x.StageId));
+        Assert.All(projection.Stages, stage => Assert.Null(stage.EvidenceValidationState));
+    }
+
+    [Fact]
+    public void Projects_evidence_diagnostics_without_exposing_evidence_reference_or_bundle()
+    {
+        var evidence = new DependencyStageEvidence(
+            "profile-a", 1, Digest, "run-42", Digest, "github-actions",
+            DependencyEvidenceState.Accepted, Digest,
+            "https://example.invalid/private-evidence", "pipeline-attempt-1", "attempt-core");
+        var graph = Graph(Stage("core", status: DependencyStageStatus.Passed) with { Evidence = evidence });
+
+        var stage = Assert.Single(DependencyGraphReadOnlyProjection.Create(graph).Stages);
+
+        Assert.Equal(DependencyEvidenceState.Accepted, stage.EvidenceValidationState);
+        Assert.Equal("profile-a", stage.EvidenceProfileId);
+        Assert.Equal("run-42", stage.EvidenceRunId);
+        Assert.Equal("github-actions", stage.EvidenceProviderId);
+        Assert.Equal(Digest, stage.EvidenceReportDigest);
+        Assert.DoesNotContain("private-evidence", string.Join("|", stage.GetType().GetProperties().Select(p => p.GetValue(stage)?.ToString())));
     }
 
     [Fact]
