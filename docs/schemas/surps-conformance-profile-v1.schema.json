@@ -1,0 +1,236 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/TrentBest/TheSingularityWorkshop.Gauntlet/development/docs/schemas/surps-conformance-profile-v1.schema.json",
+  "title": "Gauntlet SURPS Conformance Profile v1",
+  "description": "Declarative selection and provenance contract for a Gauntlet-owned SURPS campaign profile. This schema does not define or execute SURPS rules.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "version",
+    "profileDigest",
+    "title",
+    "status",
+    "description",
+    "source",
+    "selection",
+    "scenario",
+    "probes",
+    "limits"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^surps\\.[a-z0-9.-]+$"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "profileDigest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "const": "fixture"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository",
+        "commit",
+        "descriptor",
+        "procedure"
+      ],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+        },
+        "commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40,64}$"
+        },
+        "descriptor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "procedure": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "optIn",
+        "rulebooks",
+        "lodPolicy"
+      ],
+      "properties": {
+        "optIn": {
+          "const": true
+        },
+        "rulebooks": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "version",
+              "lod",
+              "scope",
+              "role",
+              "selected"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z0-9]+(\\.[a-z0-9-]+)+$"
+              },
+              "version": {
+                "type": "string",
+                "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+              },
+              "lod": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "scope": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]*:[a-z0-9][a-z0-9-]*$"
+              },
+              "role": {
+                "enum": [
+                  "core",
+                  "domain",
+                  "setting",
+                  "scenario"
+                ]
+              },
+              "selected": {
+                "const": true
+              }
+            }
+          }
+        },
+        "lodPolicy": {
+          "const": "explicit-selection-no-implicit-override"
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "offlineProcedure",
+        "digitalExecution",
+        "claims"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "offlineProcedure": {
+          "type": "string",
+          "minLength": 1
+        },
+        "digitalExecution": {
+          "const": "not-implemented"
+        },
+        "claims": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "profile-selection",
+              "rulebook-identity",
+              "lod-scope-explicitness",
+              "offline-procedure-reference"
+            ]
+          }
+        }
+      }
+    },
+    "probes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "version",
+          "required",
+          "weight"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^surps\\.[a-z0-9.-]+$"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "weight": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidateCodeExecution",
+        "networkEgress",
+        "hostIsolationClaim",
+        "maxProbeCount"
+      ],
+      "properties": {
+        "candidateCodeExecution": {
+          "const": false
+        },
+        "networkEgress": {
+          "const": false
+        },
+        "hostIsolationClaim": {
+          "const": false
+        },
+        "maxProbeCount": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        }
+      }
+    }
+  }
+}
