@@ -209,6 +209,39 @@ public sealed class CampaignEvaluatorTests
     }
 
     [Fact]
+    public void Maximum_single_probe_weight_scores_without_intermediate_overflow()
+    {
+        var profile = Profile(new ProbeDefinition("required-contract", 1, true, decimal.MaxValue));
+        var report = Report(profile,
+        [
+            new ProbeResult("required-contract", 1, ProbeOutcome.Passed, 1, 1, [], TimeSpan.Zero)
+        ]);
+
+        var result = CampaignEvaluator.Evaluate(profile, Candidate, report);
+
+        Assert.Equal(GateStatus.Passed, result.Status);
+        Assert.Equal(100m, result.Score);
+    }
+
+    [Fact]
+    public void Required_probe_weight_overflow_makes_profile_invalid()
+    {
+        var profile = Profile(
+            new ProbeDefinition("required-a", 1, true, decimal.MaxValue),
+            new ProbeDefinition("required-b", 1, true, decimal.MaxValue));
+        var report = Report(profile,
+        [
+            new ProbeResult("required-a", 1, ProbeOutcome.Passed, 1, 1, [], TimeSpan.Zero),
+            new ProbeResult("required-b", 1, ProbeOutcome.Passed, 1, 1, [], TimeSpan.Zero)
+        ]);
+
+        var result = CampaignEvaluator.Evaluate(profile, Candidate, report);
+
+        Assert.Equal(GateStatus.Invalid, result.Status);
+        Assert.Null(result.Score);
+    }
+
+    [Fact]
     public void Probe_version_mismatch_is_invalid()
     {
         var profile = Profile(new ProbeDefinition("required-contract", 2, true, 1m));
