@@ -1,6 +1,6 @@
 # Dependency Machine — staged campaigns and badge projection
 
-**Status:** implementation in progress; versioned graph contracts and the animated multi-stage projection are implemented on draft PR #5.  
+**Status:** implementation in progress; versioned graph contracts, evidence-quality state projection, and the animated multi-stage preview are implemented on draft PR #5.  
 **Related:** [Gauntlet issue #4](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/issues/4), [CiAi evidence handoff contract](CIAI_EVIDENCE_HANDOFF.md), [Read-only projection](READ_ONLY_PROJECTION.md), [Badge Specification](BADGE_SPEC.md), [Autonomous Development Pipeline](AUTONOMOUS_DEVELOPMENT_PIPELINE.md).
 
 ## The machine
@@ -110,8 +110,8 @@ The version-2 projection contract adds explicit pipeline-attempt and stage-attem
 
 1. **Implemented in PR #5:** version-2 graph/stage contracts, candidate/evidence-bundle identity checks, exact pipeline/stage-attempt evidence binding, canonical snapshot digest verification, DAG validation, deterministic topological order, prerequisite eligibility, and fail-closed aggregate projection.
 2. Continue expanding tests for retries, stale graph snapshots, and mixed-state precedence. Current tests cover DAG ordering, cycles, missing/duplicate nodes, malformed evidence, evidence-bundle binding, pipeline/stage-attempt mismatch and replay rejection, joins, independent branches, premature starts, optional-only graph rejection, and snapshot tamper detection.
-3. **Implemented in PR #5:** deterministic tier/row layout and a snapshot-driven multi-stage GUI.SVG storyboard with dependency tracks, distinct mechanical archetypes, stage labels, a single advancing knight marker, a knocked-down failure pose with a separated helmet, aggregate gate, and preview-only fixtures for both a failed/blocked path and an all-passed path.
-4. **Implemented in PR #5:** declarative per-stage pendulum, gear, crusher, and trap choreography; knight advance/celebration/failure motion; helmet scatter; and a `prefers-reduced-motion` static fallback.
+3. **Implemented in PR #5:** deterministic tier/row layout and a snapshot-driven multi-stage GUI.SVG storyboard with dependency tracks, distinct mechanical archetypes, stage labels, a single knight marker, a knocked-down pose only for a validated campaign failure, explicit non-failure captions for incomplete/invalid/untrusted evidence, an aggregate gate, and preview-only fixtures for failed, passed, incomplete, invalid, and untrusted states.
+4. **Implemented in PR #5:** declarative per-stage pendulum, gear, crusher, and trap choreography; knight advance/celebration/validated-failure motion; helmet scatter only for a validated campaign failure; and a `prefers-reduced-motion` static fallback. The CI render check also reverses stage and upstream input order and requires byte-identical SVG output.
 5. Connect a read-only CiAi projection only after CiAi independently validates each stage's source/artifact, required workflow run and attempt, tested checkout SHA, workflow definition and job-log evidence, Gauntlet profile/report, and host receipt/provider trust. The evidence bundle digest/reference must point to that validated bundle.
 6. Enable downstream scheduling only through CiAi's separately tested policy gates; never from badge output.
 
