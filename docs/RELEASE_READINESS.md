@@ -5,14 +5,16 @@
 **Current release state:** `NOT READY`  
 **Final owner review:** `NOT REQUESTED`  
 **Publication authorization:** `NOT GRANTED`  
-**Last reviewed:** 2026-11-20
+**Last reviewed:** 2026-11-23
 
 > [!IMPORTANT]
 > Completing this checklist does not authorize a merge, NuGet publication, GitHub release, deployment, or any other privileged action. The owner must review the exact release candidate and explicitly authorize publication. No automation, passing test, badge, score, or agent may infer that authorization.
 
 ## Current readiness snapshot — 2026-11-20
 
-**Engineering progress:** The .NET 10 core, strict version-1 receipt JSON contract, bounded RFC 8785 signature-payload builder, ES256 verifier, and immutable process-local trust snapshot are implemented. The test-only JCS integration passes all six official RFC 8785 JSON vectors, all 23 Appendix B finite-number vectors, and the end-to-end ES256 verification path. Latest verified code evidence on `57592a7ed07bf25cb59609178c7d09791bc22db5`: 76 core/security tests and 47 JCS integration tests passed; dependency restore is locked to System.Text.Json 10.0.15; no vulnerable transitive packages were reported; badge and Sith workflows passed. Repository topology is exactly `development` and `master`; `master` remains unchanged at `0dda74197b4f7fc3f547dc369737227beb6c22d2`.
+**Engineering progress:** The .NET 10 core, strict version-1 receipt JSON contract, bounded RFC 8785 signature-payload builder, ES256 verifier, and immutable process-local trust snapshot remain implemented. The test-only JCS integration passes all six official RFC 8785 JSON vectors, all 23 Appendix B finite-number vectors, and the end-to-end ES256 verification path. The latest recorded `development` verification for the SURPS CORE Spying metadata fixture reports 79/79 core/security tests and 47/47 JCS integration tests passed in [core workflow #298](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/45093816022); the [GUI.SVG badge workflow #314](https://github.com/TrentBest/TheSingularityWorkshop.Gauntlet/actions/runs/45093816039) also passed, and the dependency audit reported no vulnerable packages. Current `development` is `15d1345047d1a15cad74f5bc195f6891fe2236d3`; `master` remains unchanged at `0dda74197b4f7fc3f547dc369737227beb6c22d2`.
+
+**Repository hygiene is currently non-compliant:** four branches exist: `master`, `development`, `feature/dependency-machine-badge` (open draft PR #5; 85 commits ahead and 10 behind `development`), and `feature/warlords-campaign-adapter` (open draft PR #3; 24 commits ahead and 10 behind `development`). Sith's two-branch policy is therefore not satisfied. Both feature branches contain active, distinct PR work and are **not** marked safe to delete. Review and consolidate branch cleanup in one batch only after the work is safely integrated or explicitly abandoned; no branch has been deleted.
 
 **Remaining release blockers:**
 
@@ -146,7 +148,7 @@ This is deliberately **NOT READY**. Passing unit/integration tests and badges do
 - [x] Core contract test project and GitHub Actions workflow exist.
 - [x] Badge and Sith policy workflows exist.
 - [x] Workflows use read-only permissions where feasible; badge workflow pins its checkout/setup/upload actions to immutable SHAs.
-- [x] Sith policy currently reports exactly `master` and `development`.
+- [!] Sith policy is currently non-compliant: four branches exist (`master`, `development`, and the two active PR branches listed in the current readiness snapshot). Neither feature branch is safe to delete while its distinct draft PR work remains active; consolidate cleanup into one reviewed batch after safe integration or explicit abandonment.
 - [ ] Run the complete Release build and test suite from a clean checkout of the exact release-candidate SHA. Core and tests are now targeting .NET 10; validate the full workflow after this migration.
 - [x] Run all badge fixture generation and verification from a clean checkout; archive the exact generated artifacts. The .NET 10-only badge workflow builds, renders, verifies, and uploads all four SVG states.
 - [ ] Add explicit workflow for formatting/analyzers and fail on warnings selected by policy.
