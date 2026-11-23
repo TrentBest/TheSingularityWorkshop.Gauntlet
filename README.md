@@ -74,7 +74,7 @@ The ownership boundaries are deliberate:
 - **Foundry** coordinates bounded repair work and human handoff.
 - **GUI.SVG** generates the animated badge from the same status model; the badge is presentation, not evidence.
 
-See [Architecture](docs/ARCHITECTURE.md), [Run Contract](docs/RUN_CONTRACT.md), [Autonomous Development Pipeline](docs/AUTONOMOUS_DEVELOPMENT_PIPELINE.md), and the [local development guide](docs/DEVELOPMENT.md).
+See [Architecture](docs/ARCHITECTURE.md), [Run Contract](docs/RUN_CONTRACT.md), [SURPS Conformance Profile v1](docs/SURPS_CONFORMANCE_PROFILE_V1.md), [Autonomous Development Pipeline](docs/AUTONOMOUS_DEVELOPMENT_PIPELINE.md), and the [local development guide](docs/DEVELOPMENT.md).
 
 ## 🟢 04 — See it in a minute
 
