@@ -85,6 +85,12 @@ public static class CampaignEvaluator
 
         foreach (var result in results)
         {
+            if (string.IsNullOrWhiteSpace(result.ProbeId))
+            {
+                reasons.Add("Run report contains a probe result with a missing probe identity.");
+                continue;
+            }
+
             if (!definitions.TryGetValue(result.ProbeId, out var definition))
             {
                 reasons.Add($"Run report contains undeclared probe '{result.ProbeId}'.");
@@ -242,6 +248,9 @@ public static class CampaignEvaluator
             if (string.IsNullOrWhiteSpace(probe.Id) || probe.Version < 1 || probe.Weight <= 0)
                 reasons.Add("Campaign profile contains an invalid probe definition.");
         }
+
+        if (profile.BlockingSeverities.Any(severity => !Enum.IsDefined(severity)))
+            reasons.Add("Campaign profile contains an unknown blocking severity.");
 
         var duplicate = profile.Probes
             .GroupBy(x => x.Id, StringComparer.Ordinal)
