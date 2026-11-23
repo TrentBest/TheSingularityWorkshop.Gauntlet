@@ -62,6 +62,10 @@ jobs:
           machine=TheSingularityWorkshop.Gauntlet/samples/DependencyMachineBadge/DependencyMachineBadge.csproj
           dotnet run --no-build --project "$machine" --configuration Release -- --input TheSingularityWorkshop.Gauntlet/samples/DependencyMachineBadge/fixtures/parallel-join.json --output artifacts/dependency-machine-failed.svg
           dotnet run --no-build --project "$machine" --configuration Release -- --input TheSingularityWorkshop.Gauntlet/samples/DependencyMachineBadge/fixtures/all-passed.json --output artifacts/dependency-machine-passed.svg
+          python3 TheSingularityWorkshop.Gauntlet/scripts/generate-dependency-machine-state-fixtures.py TheSingularityWorkshop.Gauntlet/samples/DependencyMachineBadge/fixtures/parallel-join.json artifacts
+          for state in incomplete invalid untrusted; do
+            dotnet run --no-build --project "$machine" --configuration Release -- --input "artifacts/dependency-machine-$state.json" --output "artifacts/dependency-machine-$state.svg"
+          done
           python3 - <<'PY'
           import json
           from pathlib import Path
@@ -83,6 +87,9 @@ jobs:
         run: |
           python3 TheSingularityWorkshop.Gauntlet/scripts/verify-dependency-machine-fixture.py artifacts/dependency-machine-failed.svg failed
           python3 TheSingularityWorkshop.Gauntlet/scripts/verify-dependency-machine-fixture.py artifacts/dependency-machine-passed.svg passed
+          python3 TheSingularityWorkshop.Gauntlet/scripts/verify-dependency-machine-fixture.py artifacts/dependency-machine-incomplete.svg incomplete
+          python3 TheSingularityWorkshop.Gauntlet/scripts/verify-dependency-machine-fixture.py artifacts/dependency-machine-invalid.svg invalid
+          python3 TheSingularityWorkshop.Gauntlet/scripts/verify-dependency-machine-fixture.py artifacts/dependency-machine-untrusted.svg untrusted
 
       - name: Upload generated GUI.SVG badge fixtures
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
