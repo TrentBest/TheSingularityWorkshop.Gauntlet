@@ -178,6 +178,37 @@ public sealed class CampaignEvaluatorTests
     }
 
     [Fact]
+    public void Missing_probe_identity_is_invalid_instead_of_throwing()
+    {
+        var profile = Profile(new ProbeDefinition("required-contract", 1, true, 1m));
+        var report = Report(profile,
+        [
+            new ProbeResult(null!, 1, ProbeOutcome.Passed, 1, 1, [], TimeSpan.Zero)
+        ]);
+
+        var result = CampaignEvaluator.Evaluate(profile, Candidate, report);
+
+        Assert.Equal(GateStatus.Invalid, result.Status);
+        Assert.Null(result.Score);
+    }
+
+    [Fact]
+    public void Unknown_profile_blocking_severity_is_invalid()
+    {
+        var profile = Profile(new ProbeDefinition("required-contract", 1, true, 1m))
+            with { BlockingSeverities = new HashSet<FindingSeverity> { (FindingSeverity)999 } };
+        var report = Report(profile,
+        [
+            new ProbeResult("required-contract", 1, ProbeOutcome.Passed, 1, 1, [], TimeSpan.Zero)
+        ]);
+
+        var result = CampaignEvaluator.Evaluate(profile, Candidate, report);
+
+        Assert.Equal(GateStatus.Invalid, result.Status);
+        Assert.Null(result.Score);
+    }
+
+    [Fact]
     public void Probe_version_mismatch_is_invalid()
     {
         var profile = Profile(new ProbeDefinition("required-contract", 2, true, 1m));
