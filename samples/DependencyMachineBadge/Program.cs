@@ -202,9 +202,11 @@ Console.WriteLine($"Rendered {evaluation.Status} dependency-machine preview to {
 
 static void DrawKnight(GuiBuilder scene, string id, int x, int y, DependencyStageStatus status)
 {
-    var defeated = status is DependencyStageStatus.Failed or DependencyStageStatus.Invalid or DependencyStageStatus.Untrusted;
+    var defeated = status == DependencyStageStatus.Failed;
+    var evidenceRejected = status is DependencyStageStatus.Invalid or DependencyStageStatus.Untrusted;
     var celebrating = status == DependencyStageStatus.Passed;
     var poseClass = defeated ? "knight-failed"
+        : evidenceRejected ? "knight-waiting"
         : celebrating ? "knight-celebrating"
         : status == DependencyStageStatus.Running ? "knight-advancing"
         : "knight-waiting";
