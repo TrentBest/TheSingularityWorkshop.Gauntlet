@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "id": "surps.campaign.core-spying.conformance",
+  "version": 1,
+  "profileDigest": "sha256:960b52441adce7b1188bf31fdd55ccd4c565a7e1ad50995dc957cad560fcf9d8",
+  "title": "SURPS CORE Spying — first conformance fixture",
+  "status": "fixture",
+  "description": "Validates explicit selection metadata and evidence binding for the first tabletop draft. It does not execute or certify a digital spying simulator.",
+  "source": {
+    "repository": "TrentBest/TheSingularityWorkshop.SingularityUniversalRoleplayingSystem",
+    "commit": "e559337870d596fd11b62478b0fd356d6f503a9e",
+    "descriptor": "docs/books/core-spying.book.json",
+    "procedure": "docs/books/core-spying.md"
+  },
+  "selection": {
+    "optIn": true,
+    "rulebooks": [
+      {
+        "id": "surps.core.spying",
+        "version": "0.1.0",
+        "lod": 0,
+        "scope": "campaign:core-spying",
+        "role": "core",
+        "selected": true
+      }
+    ],
+    "lodPolicy": "explicit-selection-no-implicit-override"
+  },
+  "scenario": {
+    "id": "surps.core.spying.missing-ledger",
+    "offlineProcedure": "docs/books/core-spying.md#9-worked-mission-the-missing-ledger",
+    "digitalExecution": "not-implemented",
+    "claims": [
+      "profile-selection",
+      "rulebook-identity",
+      "lod-scope-explicitness",
+      "offline-procedure-reference"
+    ]
+  },
+  "probes": [
+    {
+      "id": "surps.opt-in.selection",
+      "version": 1,
+      "required": true,
+      "weight": 1
+    },
+    {
+      "id": "surps.rulebook.identity",
+      "version": 1,
+      "required": true,
+      "weight": 1
+    },
+    {
+      "id": "surps.lod.scope.explicit",
+      "version": 1,
+      "required": true,
+      "weight": 1
+    },
+    {
+      "id": "surps.offline.procedure",
+      "version": 1,
+      "required": true,
+      "weight": 1
+    }
+  ],
+  "limits": {
+    "candidateCodeExecution": false,
+    "networkEgress": false,
+    "hostIsolationClaim": false,
+    "maxProbeCount": 4
+  }
+}
