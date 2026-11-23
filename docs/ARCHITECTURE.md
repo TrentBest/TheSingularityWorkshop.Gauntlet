@@ -21,7 +21,7 @@ Gauntlet does not own composition, CI execution authority, release authorization
 | CI host | Build/test execution, runner isolation, process and resource lifecycle | Gauntlet's domain verdict |
 | CiAi | Exact-run observation, evidence correlation, trust validation, gate policy, reporting | Probe implementation or implicit permission escalation |
 | HeadlessAi | Provider-neutral model invocation and response normalization | Trust decisions, gate overrides, repository-write authorization |
-| Foundry | Bounded task/repair lifecycle, coordination, human handoff | Independent authority to publish or merge |
+| FSM_Execution | Bounded task/repair lifecycle, coordination, human handoff | Independent authority to publish or merge |
 | GUI.SVG | GUI semantic-tree-to-SVG serialization | Campaign state, scoring, or live test execution |
 
 Gauntlet should remain independently understandable and runnable. Add dependencies only when a concrete contract requires them. Do not reference FSM_COS merely to gain access to MicroBundle composition: a host adapter should supply the candidate and its declared context.
