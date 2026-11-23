@@ -272,7 +272,9 @@ static void DrawKnight(GuiBuilder scene, string id, int x, int y, DependencyStag
                 DependencyStageStatus.Incomplete => "EVIDENCE INCOMPLETE",
                 DependencyStageStatus.Blocked => "HELD AT GATE",
                 DependencyStageStatus.Passed => "COURSE CLEARED",
-                _ => "ADVANCING"
+                DependencyStageStatus.Running => "ADVANCING",
+                DependencyStageStatus.NotYetRun => "AWAITING START",
+                _ => "AWAITING"
             };
             AddText(knight, $"{id}-caption", caption, -23, 31, 4, StageColor(status), "700");
         });
