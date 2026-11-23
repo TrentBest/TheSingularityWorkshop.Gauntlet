@@ -27,12 +27,8 @@ for name, (status, evidence_state) in states.items():
     for stage in fixture["stages"]:
         if stage["stageId"] == "fsm-api":
             stage["status"] = status
-            if evidence_state == 1:
-                stage["evidence"]["validationState"] = evidence_state
-                stage["evidence"]["pipelineAttemptId"] = fixture["pipelineAttemptId"]
-            else:
-                stage["evidence"]["validationState"] = evidence_state
-                stage["evidence"]["pipelineAttemptId"] = fixture["pipelineAttemptId"]
+            stage["evidence"]["validationState"] = evidence_state
+            stage["evidence"]["pipelineAttemptId"] = fixture["pipelineAttemptId"]
         else:
             stage["status"] = 4
             stage["evidence"] = None
