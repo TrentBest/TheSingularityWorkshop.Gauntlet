@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Xunit;
 using TheSingularityWorkshop.Gauntlet;
 
@@ -157,6 +158,71 @@ public sealed class DependencyGraphEvaluatorTests
             Stage("untrusted", status: DependencyStageStatus.Untrusted));
 
         Assert.Equal(DependencyGraphStatus.Untrusted, DependencyGraphEvaluator.Evaluate(graph).Status);
+    }
+
+    [Theory]
+    [InlineData(DependencyStageStatus.NotYetRun)]
+    [InlineData(DependencyStageStatus.Running)]
+    [InlineData(DependencyStageStatus.Incomplete)]
+    [InlineData(DependencyStageStatus.Passed)]
+    [InlineData(DependencyStageStatus.Failed)]
+    public void Rejected_evidence_cannot_be_hidden_by_a_non_rejection_stage_status(DependencyStageStatus status)
+    {
+        var graph = Graph(Stage("core", status: status) with
+        {
+            Evidence = new DependencyStageEvidence(
+                "standard", 1, Digest, "run-core", Digest, "provider",
+                DependencyEvidenceState.Rejected)
+        });
+
+        var validation = DependencyGraphEvaluator.Validate(graph);
+
+        Assert.False(validation.IsValid);
+        Assert.Contains(validation.Errors, error => error.Contains("rejected evidence", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData(DependencyStageStatus.Invalid, DependencyGraphStatus.Invalid)]
+    [InlineData(DependencyStageStatus.Untrusted, DependencyGraphStatus.Untrusted)]
+    public void Rejected_evidence_is_visible_as_its_explicit_failure_state(
+        DependencyStageStatus stageStatus,
+        DependencyGraphStatus graphStatus)
+    {
+        var graph = Graph(Stage("core", status: stageStatus) with
+        {
+            Evidence = new DependencyStageEvidence(
+                "standard", 1, Digest, "run-core", Digest, "provider",
+                DependencyEvidenceState.Rejected)
+        });
+
+        var projection = DependencyGraphReadOnlyProjection.Create(graph);
+
+        Assert.True(projection.IsStructurallyValid);
+        Assert.Equal(graphStatus, projection.Status);
+        Assert.Equal(DependencyEvidenceState.Rejected, projection.Stages.Single().EvidenceValidationState);
+    }
+
+    [Fact]
+    public void Read_only_projection_is_order_independent_for_equivalent_graphs()
+    {
+        var first = Graph(
+            Stage("join", ["left", "right"], status: DependencyStageStatus.Blocked),
+            Stage("right", ["core"], status: DependencyStageStatus.Blocked),
+            Stage("left", ["core"], status: DependencyStageStatus.Blocked),
+            Stage("core"));
+        var reordered = Graph(
+            Stage("core"),
+            Stage("left", ["core"], status: DependencyStageStatus.Blocked),
+            Stage("right", ["core"], status: DependencyStageStatus.Blocked),
+            Stage("join", ["right", "left"], status: DependencyStageStatus.Blocked));
+
+        var firstProjection = DependencyGraphReadOnlyProjection.Create(first);
+        var reorderedProjection = DependencyGraphReadOnlyProjection.Create(reordered);
+
+        Assert.Equal(first.SnapshotDigest, reordered.SnapshotDigest);
+        Assert.Equal(
+            JsonSerializer.Serialize(firstProjection),
+            JsonSerializer.Serialize(reorderedProjection));
     }
 
     [Fact]
