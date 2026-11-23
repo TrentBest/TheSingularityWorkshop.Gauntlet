@@ -22,6 +22,7 @@ if (!validation.IsValid)
 
 var evaluation = DependencyGraphEvaluator.Evaluate(snapshot);
 var stages = snapshot.Stages.ToDictionary(stage => stage.StageId, StringComparer.Ordinal);
+var orderedStages = validation.TopologicalStageIds.Select(stageId => stages[stageId]).ToArray();
 var depth = new Dictionary<string, int>(StringComparer.Ordinal);
 foreach (var stageId in validation.TopologicalStageIds)
 {
@@ -54,7 +55,7 @@ var scene = GuiBuilder.Create("svg-scene", "dependency-machine")
     .Property("description",
         $"Preview fixture only. Pipeline {snapshot.PipelineAttemptId}; snapshot {snapshot.SnapshotId}; " +
         $"{evaluation.PassedRequiredStages} of {evaluation.TotalRequiredStages} required stages passed. " +
-        string.Join(", ", snapshot.Stages.Select(stage => $"{stage.StageId}: {stage.Status}")) + ".");
+        string.Join(", ", orderedStages.Select(stage => $"{stage.StageId}: {stage.Status}")) + ".");
 
 var motionStyles = """
   .pendulum-shaft { transform-box: fill-box; transform-origin: 50% 0%; }
@@ -103,10 +104,10 @@ AddText(scene, "attempt", $"ATTEMPT {snapshot.PipelineAttemptId}  ·  SNAPSHOT {
     Math.Max(22, width - 310), 26, 4.5, "#94a3b8", "600");
 
 // Draw dependency links first so stage machinery sits above the tracks.
-foreach (var stage in snapshot.Stages)
+foreach (var stage in orderedStages)
 {
     var target = positions[stage.StageId];
-    foreach (var upstreamId in stage.UpstreamStageIds)
+    foreach (var upstreamId in stage.UpstreamStageIds.OrderBy(id => id, StringComparer.Ordinal))
     {
         var source = positions[upstreamId];
         scene.Child("svg-path", $"edge-{SafeId(upstreamId)}-{SafeId(stage.StageId)}", edge => edge
@@ -116,7 +117,7 @@ foreach (var stage in snapshot.Stages)
     }
 }
 
-foreach (var stage in snapshot.Stages)
+foreach (var stage in orderedStages)
 {
     var (x, y) = positions[stage.StageId];
     var accent = StageColor(stage.Status);
@@ -144,10 +145,10 @@ foreach (var stage in snapshot.Stages)
 }
 
 // One original vector knight advances through the static course snapshot.
-var travelerStage = snapshot.Stages.FirstOrDefault(stage => stage.Status == DependencyStageStatus.Failed)
-    ?? snapshot.Stages.FirstOrDefault(stage => stage.Status == DependencyStageStatus.Running)
-    ?? snapshot.Stages.FirstOrDefault(stage => stage.Status == DependencyStageStatus.Blocked)
-    ?? snapshot.Stages.FirstOrDefault(stage =>
+var travelerStage = orderedStages.FirstOrDefault(stage => stage.Status == DependencyStageStatus.Failed)
+    ?? orderedStages.FirstOrDefault(stage => stage.Status == DependencyStageStatus.Running)
+    ?? orderedStages.FirstOrDefault(stage => stage.Status == DependencyStageStatus.Blocked)
+    ?? orderedStages.FirstOrDefault(stage =>
         stage.Status == DependencyStageStatus.NotYetRun &&
         DependencyGraphEvaluator.IsEligible(snapshot, stage.StageId));
 
@@ -344,7 +345,7 @@ static string Archetype(string stageId)
     return (hash % 5) switch { 0 => "axe", 1 => "gear", 2 => "crusher", 3 => "trap", _ => "gate" };
 }
 
-static string SafeId(string value) => new(value.Select(c => char.IsLetterOrDigit(c) ? c : '-').ToArray());
+static string SafeId(string value) => "id-" + Convert.ToHexString(System.Text.Encoding.UTF8.GetBytes(value));
 static string Shorten(string value) => value.Length <= 18 ? value : value[..18];
 static string Get(IReadOnlyDictionary<string, string> values, string key, string fallback) =>
     values.TryGetValue(key, out var value) ? value : fallback;
