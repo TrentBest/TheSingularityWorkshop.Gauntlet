@@ -116,7 +116,7 @@ public sealed record DependencyStageReadOnlyProjection(
             stage.Required,
             stage.AttemptId,
             stage.Status,
-            Array.AsReadOnly((stage.UpstreamStageIds ?? Array.Empty<string>()).ToArray()),
+            Array.AsReadOnly((stage.UpstreamStageIds ?? Array.Empty<string>()).OrderBy(id => id, StringComparer.Ordinal).ToArray()),
             stage.Evidence?.ValidationState,
             stage.Evidence?.ProfileId,
             stage.Evidence?.RunId,
