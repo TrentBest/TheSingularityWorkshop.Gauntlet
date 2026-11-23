@@ -168,6 +168,8 @@ public static class DependencyGraphEvaluator
                 errors.Add($"Stage '{stage.StageId}' has an unknown evidence validation state.");
             if (evidence.ValidationState == DependencyEvidenceState.Accepted)
             {
+                if (stage.Status is not (DependencyStageStatus.Passed or DependencyStageStatus.Failed))
+                    errors.Add($"Stage '{stage.StageId}' cannot carry accepted evidence while its status is '{stage.Status}'.");
                 if (string.IsNullOrWhiteSpace(evidence.ProfileId) || evidence.ProfileVersion < 1 ||
                     !IsSha256(evidence.ProfileDigest) || string.IsNullOrWhiteSpace(evidence.RunId) ||
                     !IsSha256(evidence.ReportDigest) || string.IsNullOrWhiteSpace(evidence.ProviderId) ||
@@ -175,6 +177,11 @@ public static class DependencyGraphEvaluator
                     !string.Equals(evidence.PipelineAttemptId, pipelineAttemptId, StringComparison.Ordinal) ||
                     !string.Equals(evidence.StageAttemptId, stage.AttemptId, StringComparison.Ordinal))
                     errors.Add($"Stage '{stage.StageId}' has incomplete accepted evidence identity.");
+            }
+            else if (evidence.ValidationState == DependencyEvidenceState.Rejected &&
+                     stage.Status is not (DependencyStageStatus.Invalid or DependencyStageStatus.Untrusted))
+            {
+                errors.Add($"Stage '{stage.StageId}' has rejected evidence but is not marked Invalid or Untrusted.");
             }
         }
     }
