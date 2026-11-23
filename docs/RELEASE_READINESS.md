@@ -43,7 +43,7 @@ This is deliberately **NOT READY**. Passing unit/integration tests and badges do
 ## Gate 0 — Scope, ownership, and release boundary
 
 - [x] Repository purpose and non-goals are documented.
-- [x] Gauntlet, CI host, CiAi, HeadlessAi, Foundry, FSM_COS, and GUI.SVG ownership boundaries are documented.
+- [x] Gauntlet, CI host, CiAi, HeadlessAi, FSM_Execution, FSM_COS, and GUI.SVG ownership boundaries are documented.
 - [x] Gauntlet is an evidence provider; CiAi independently validates evidence and owns final gate policy.
 - [x] A Gauntlet pass, score, report, or badge cannot authorize merge, publication, release, or deployment.
 - [ ] Confirm the intended first public release scope: core contracts/evaluator only, or also a qualified execution/provider capability. Record explicit exclusions.
