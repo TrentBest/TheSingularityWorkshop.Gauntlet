@@ -71,7 +71,7 @@ The ownership boundaries are deliberate:
 - **Gauntlet** owns probes, findings, campaign scoring, and replayable run records.
 - **CiAi** independently validates exact-source evidence and evaluates gate policy.
 - **HeadlessAi** may assess pinned findings; model output cannot change a verdict or authorize an action.
-- **Foundry** coordinates bounded repair work and human handoff.
+- **FSM_Execution** coordinates bounded repair work and human handoff.
 - **GUI.SVG** generates the animated badge from the same status model; the badge is presentation, not evidence.
 
 See [Architecture](docs/ARCHITECTURE.md), [Run Contract](docs/RUN_CONTRACT.md), [SURPS Conformance Profile v1](docs/SURPS_CONFORMANCE_PROFILE_V1.md) ([schema](docs/schemas/surps-conformance-profile-v1.schema.json)), [Autonomous Development Pipeline](docs/AUTONOMOUS_DEVELOPMENT_PIPELINE.md), and the [local development guide](docs/DEVELOPMENT.md).
