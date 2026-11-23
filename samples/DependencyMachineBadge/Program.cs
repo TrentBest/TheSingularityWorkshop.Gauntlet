@@ -145,9 +145,12 @@ foreach (var stage in orderedStages)
 }
 
 // One original vector knight advances through the static course snapshot.
-var travelerStage = orderedStages.FirstOrDefault(stage => stage.Status == DependencyStageStatus.Failed)
-    ?? orderedStages.FirstOrDefault(stage => stage.Status == DependencyStageStatus.Running)
+var travelerStage = orderedStages.FirstOrDefault(stage => stage.Status == DependencyStageStatus.Invalid)
+    ?? orderedStages.FirstOrDefault(stage => stage.Status == DependencyStageStatus.Untrusted)
+    ?? orderedStages.FirstOrDefault(stage => stage.Status == DependencyStageStatus.Incomplete)
+    ?? orderedStages.FirstOrDefault(stage => stage.Status == DependencyStageStatus.Failed)
     ?? orderedStages.FirstOrDefault(stage => stage.Status == DependencyStageStatus.Blocked)
+    ?? orderedStages.FirstOrDefault(stage => stage.Status == DependencyStageStatus.Running)
     ?? orderedStages.FirstOrDefault(stage =>
         stage.Status == DependencyStageStatus.NotYetRun &&
         DependencyGraphEvaluator.IsEligible(snapshot, stage.StageId));
@@ -199,7 +202,7 @@ Console.WriteLine($"Rendered {evaluation.Status} dependency-machine preview to {
 
 static void DrawKnight(GuiBuilder scene, string id, int x, int y, DependencyStageStatus status)
 {
-    var defeated = status == DependencyStageStatus.Failed;
+    var defeated = status is DependencyStageStatus.Failed or DependencyStageStatus.Invalid or DependencyStageStatus.Untrusted;
     var celebrating = status == DependencyStageStatus.Passed;
     var poseClass = defeated ? "knight-failed"
         : celebrating ? "knight-celebrating"
@@ -257,8 +260,17 @@ static void DrawKnight(GuiBuilder scene, string id, int x, int y, DependencyStag
             knight.Child("svg-path", $"{id}-shield", shield => shield.Property("d", "M-9 -5 L-15 -8 L-15 3 L-10 8 Z")
                 .Property("fill", "#31516c").Property("stroke", "#e7b84b"));
         }
-            AddText(knight, $"{id}-caption", defeated ? "STRUCK DOWN" : status == DependencyStageStatus.Blocked
-                ? "HELD AT GATE" : celebrating ? "COURSE CLEARED" : "ADVANCING", -23, 31, 4, defeated ? "#ef5365" : "#cbd5e1", "700");
+            var caption = status switch
+            {
+                DependencyStageStatus.Failed => "STRUCK DOWN",
+                DependencyStageStatus.Invalid => "INVALID EVIDENCE",
+                DependencyStageStatus.Untrusted => "UNTRUSTED EVIDENCE",
+                DependencyStageStatus.Incomplete => "EVIDENCE INCOMPLETE",
+                DependencyStageStatus.Blocked => "HELD AT GATE",
+                DependencyStageStatus.Passed => "COURSE CLEARED",
+                _ => "ADVANCING"
+            };
+            AddText(knight, $"{id}-caption", caption, -23, 31, 4, StageColor(status), "700");
         });
     });
 }
