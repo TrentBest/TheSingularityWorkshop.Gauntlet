@@ -190,9 +190,9 @@ public static class CampaignEvaluator
         var passedWeight = required.Sum(definition =>
         {
             var result = resultById[definition.Id];
-            return definition.Weight * result.PassedAssertions / result.TotalAssertions;
+            return definition.Weight * ((decimal)result.PassedAssertions / result.TotalAssertions);
         });
-        var score = decimal.Round(100m * passedWeight / totalWeight, 2, MidpointRounding.AwayFromZero);
+        var score = decimal.Round(100m * (passedWeight / totalWeight), 2, MidpointRounding.AwayFromZero);
 
         var findings = CollectFindings(report);
         var blockingFindings = findings
@@ -251,6 +251,15 @@ public static class CampaignEvaluator
 
         if (profile.BlockingSeverities.Any(severity => !Enum.IsDefined(severity)))
             reasons.Add("Campaign profile contains an unknown blocking severity.");
+
+        try
+        {
+            _ = profile.Probes.Where(probe => probe.Required).Sum(probe => probe.Weight);
+        }
+        catch (OverflowException)
+        {
+            reasons.Add("Campaign profile required probe weights exceed the supported decimal range.");
+        }
 
         var duplicate = profile.Probes
             .GroupBy(x => x.Id, StringComparer.Ordinal)
