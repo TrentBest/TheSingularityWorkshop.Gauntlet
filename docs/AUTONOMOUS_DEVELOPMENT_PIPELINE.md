@@ -46,7 +46,7 @@ CiAi independently validates provider and candidate binding
              of pinned findings       for next gate only
                       |
                       v
-             Foundry bounded repair
+             FSM_Execution bounded repair
              on isolated work branch
                       |
                       v
@@ -78,7 +78,7 @@ CiAi independently validates provider and candidate binding
 | CI host | Build, provision sandbox, enforce CPU/memory/time/filesystem/network limits | Secrets and host privileges never flow to candidate code |
 | CiAi | Observe CI, validate provenance, correlate exact evidence, evaluate policy | Unknown, stale, mismatched, or incomplete evidence fails closed |
 | HeadlessAi | Explain pinned findings and propose candidate patches | Model output is advisory and untrusted |
-| Foundry | Execute bounded repair tasks, track attempts, preserve human handoff | Cannot bypass CiAi gates or authorize publication |
+| FSM_Execution | Execute bounded repair tasks, track attempts, preserve human handoff | Cannot bypass CiAi gates or authorize publication |
 | Human | Review privileged changes and authorize merge/release/publication | Final authority remains outside the model loop |
 
 ## Gate sequence
@@ -108,7 +108,7 @@ A high score cannot conceal a failed required invariant or critical/high finding
 When a campaign fails:
 1. Pin the finding and its reproduction fixture.
 2. Ask HeadlessAi to explain the evidence and propose a minimal repair.
-3. Have Foundry apply the proposal only in an isolated, explicitly scoped work area.
+3. Have FSM_Execution apply the proposal only in an isolated, explicitly scoped work area.
 4. Rebuild and rerun ordinary tests.
 5. Rerun the same immutable Gauntlet profile against the new exact candidate.
 6. Compare the new run with its predecessor and retain both reports.
