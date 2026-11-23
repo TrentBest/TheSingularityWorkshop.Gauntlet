@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "surps.campaign.core-spying.conformance",
   "version": 1,
-  "profileDigest": "sha256:960b52441adce7b1188bf31fdd55ccd4c565a7e1ad50995dc957cad560fcf9d8",
+  "profileDigest": "sha256:3c190c158200351c62f40ad608b95d8237056d7409176de99b95ac650c4bce34",
   "title": "SURPS CORE Spying — first conformance fixture",
   "status": "fixture",
   "description": "Validates explicit selection metadata and evidence binding for the first tabletop draft. It does not execute or certify a digital spying simulator.",
